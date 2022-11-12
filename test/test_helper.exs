@@ -1,0 +1,10 @@
+# capture_log: true)
+ExUnit.start()
+
+# {:ok, _} = Application.ensure_all_started(:ex_machina)
+Supervisor.start_link([Rivet.Test.Repo], strategy: :one_for_one)
+
+# ExUnit.configure(exclude: [pending: true], formatters: [JUnitFormatter, ExUnit.CLIFormatter])
+
+Ecto.Adapters.SQL.Sandbox.mode(Rivet.Test.Repo, :manual)
+# Faker.start()
