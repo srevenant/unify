@@ -57,7 +57,7 @@ defmodule Rivet.MixProject do
 
   defp deps do
     [
-      {:rivet_utils, "~> 1.0.0", git: "git@github.com:srevenant/rivet-utils", branch: "master"},
+      {:rivet_utils, "~> 1.0.0"},
       {:ecto_enum, "~> 1.0"},
       {:ecto_sql, "~> 3.7"},
       {:transmogrify, "~> 1.0.0"},
