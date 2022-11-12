@@ -8,7 +8,7 @@ defmodule Rivet.MixProject do
       elixir: "~> 1.13",
       description: "Elixir data model framework library",
       source_url: "https://github.com/srevenant/rivet",
-      docs: [main: "Rivet.Utils"],
+      docs: [main: "Rivet"],
       package: package(),
       deps: deps(),
       start_permanent: Mix.env() == :prod,
