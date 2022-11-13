@@ -30,7 +30,7 @@ defmodule Rivet.MixProject do
         # migration_dir: "",
         # lib_dir: "",
         # test_dir: ""
-      ],
+      ]
     ]
   end
 
