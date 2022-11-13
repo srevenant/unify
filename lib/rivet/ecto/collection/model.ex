@@ -9,51 +9,6 @@ defmodule Rivet.Ecto.Collection.Model do
       @foreign_keys Keyword.get(opts, :foreign_keys, []) |> Enum.uniq()
       @unique_constraints Keyword.get(opts, :unique_constraints, []) |> Enum.uniq()
 
-      defp validate_foreign_keys(chgset, [{key, opts} | rest]),
-        do: foreign_key_constraint(chgset, key, opts) |> validate_foreign_keys(rest)
-
-      defp validate_foreign_keys(chgset, [key | rest]),
-        do: foreign_key_constraint(chgset, key) |> validate_foreign_keys(rest)
-
-      defp validate_foreign_keys(chgset, []), do: chgset
-
-      #
-      defp validate_unique_constraints(chgset, [{key, opts} | rest]),
-        do: foreign_key_constraint(chgset, key, opts) |> validate_unique_constraints(rest)
-
-      defp validate_unique_constraints(chgset, [key | rest]),
-        do: foreign_key_constraint(chgset, key) |> validate_unique_constraints(rest)
-
-      defp validate_unique_constraints(chgset, []), do: chgset
-
-      cond do
-        @foreign_keys == [] and @unique_constraints == [] ->
-          def validate(%Ecto.Changeset{} = chgset),
-            do: validate_required(chgset, @required_fields)
-
-        @foreign_keys == [] ->
-          def validate(%Ecto.Changeset{} = chgset) do
-            chgset
-            |> validate_required(@required_fields)
-            |> validate_unique_constraints(@unique_constraints)
-          end
-
-        @unique_constraints == [] ->
-          def validate(%Ecto.Changeset{} = chgset) do
-            chgset
-            |> validate_required(@required_fields)
-            |> validate_foreign_keys(@foreign_keys)
-          end
-
-        true ->
-          def validate(%Ecto.Changeset{} = chgset) do
-            chgset
-            |> validate_required(@required_fields)
-            |> validate_foreign_keys(@foreign_keys)
-            |> validate_unique_constraints(@unique_constraints)
-          end
-      end
-
       defoverridable validate: 1
 
       def build(params \\ %{}) do
@@ -102,6 +57,51 @@ defmodule Rivet.Ecto.Collection.Model do
       """
       def create_post(item, params), do: item
       defoverridable create_post: 2
+
+      defp validate_foreign_keys(chgset, [{key, opts} | rest]),
+        do: foreign_key_constraint(chgset, key, opts) |> validate_foreign_keys(rest)
+
+      defp validate_foreign_keys(chgset, [key | rest]),
+        do: foreign_key_constraint(chgset, key) |> validate_foreign_keys(rest)
+
+      defp validate_foreign_keys(chgset, []), do: chgset
+
+      #
+      defp validate_unique_constraints(chgset, [{key, opts} | rest]),
+        do: foreign_key_constraint(chgset, key, opts) |> validate_unique_constraints(rest)
+
+      defp validate_unique_constraints(chgset, [key | rest]),
+        do: foreign_key_constraint(chgset, key) |> validate_unique_constraints(rest)
+
+      defp validate_unique_constraints(chgset, []), do: chgset
+
+      cond do
+        @foreign_keys == [] and @unique_constraints == [] ->
+          def validate(%Ecto.Changeset{} = chgset),
+            do: validate_required(chgset, @required_fields)
+
+        @foreign_keys == [] ->
+          def validate(%Ecto.Changeset{} = chgset) do
+            chgset
+            |> validate_required(@required_fields)
+            |> validate_unique_constraints(@unique_constraints)
+          end
+
+        @unique_constraints == [] ->
+          def validate(%Ecto.Changeset{} = chgset) do
+            chgset
+            |> validate_required(@required_fields)
+            |> validate_foreign_keys(@foreign_keys)
+          end
+
+        true ->
+          def validate(%Ecto.Changeset{} = chgset) do
+            chgset
+            |> validate_required(@required_fields)
+            |> validate_foreign_keys(@foreign_keys)
+            |> validate_unique_constraints(@unique_constraints)
+          end
+      end
     end
   end
 end
