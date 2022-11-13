@@ -17,6 +17,22 @@ defmodule Rivet.Ecto.Collection do
   """
 
   import Ecto.Query, only: [from: 2]
+  
+  @callback validate(Ecto.Changeset.t()) :: Ecto.Changeset.t()
+  @callback build(params :: map()) :: Ecto.Changeset.t()
+  @callback changeset(item :: map(), params :: map()) :: Ecto.Changeset.t()
+  @callback change_prep(item :: map(), changes :: map()) :: Ecto.Changeset.t()
+  @callback change_post(item :: map(), changes :: map()) :: Ecto.Changeset.t()
+  @callback create_prep(item :: map(), changes :: map()) :: Ecto.Changeset.t()
+  @callback create_post(item :: map(), changes :: map()) :: Ecto.Changeset.t()
+
+  @optional_callbacks validate: 1,
+                      build: 1,
+                      changeset: 2,
+                      change_prep: 2,
+                      change_post: 2,
+                      create_prep: 2,
+                      create_post: 2
 
   def enrich_query_args(query, args) do
     Enum.reduce(args, query, fn

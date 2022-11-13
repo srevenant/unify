@@ -20,10 +20,10 @@ defmodule Rivet.Ecto.Model do
       end
 
       @timestamps_opts [type: Keyword.get(opts, :timestamp, :utc_datetime)]
-      @table_prefix Application.compile_env!(:rivet, :table_prefix) || ""
 
       import Ecto, only: [assoc: 2]
       import Ecto.Changeset
+      use Rivet.Ecto.Context
     end
   end
 end

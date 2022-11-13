@@ -1,20 +1,4 @@
 defmodule Rivet.Ecto.Collection.Model do
-  @callback validate(Ecto.Changeset.t()) :: Ecto.Changeset.t()
-  @callback build(params :: map()) :: Ecto.Changeset.t()
-  @callback changeset(item :: map(), params :: map()) :: Ecto.Changeset.t()
-  @callback change_prep(item :: map(), changes :: map()) :: Ecto.Changeset.t()
-  @callback change_post(item :: map(), changes :: map()) :: Ecto.Changeset.t()
-  @callback create_prep(item :: map(), changes :: map()) :: Ecto.Changeset.t()
-  @callback create_post(item :: map(), changes :: map()) :: Ecto.Changeset.t()
-
-  @optional_callbacks validate: 1,
-                      build: 1,
-                      changeset: 2,
-                      change_prep: 2,
-                      change_post: 2,
-                      create_prep: 2,
-                      create_post: 2
-
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do
       @required_fields Keyword.get(opts, :required, []) |> Enum.uniq()
