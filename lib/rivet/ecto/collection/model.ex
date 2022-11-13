@@ -9,8 +9,6 @@ defmodule Rivet.Ecto.Collection.Model do
       @foreign_keys Keyword.get(opts, :foreign_keys, []) |> Enum.uniq()
       @unique_constraints Keyword.get(opts, :unique_constraints, []) |> Enum.uniq()
 
-      defoverridable validate: 1
-
       def build(params \\ %{}) do
         %__MODULE__{}
         |> cast(params, @create_allowed_fields)
@@ -102,6 +100,8 @@ defmodule Rivet.Ecto.Collection.Model do
             |> validate_unique_constraints(@unique_constraints)
           end
       end
+
+      defoverridable validate: 1
     end
   end
 end
