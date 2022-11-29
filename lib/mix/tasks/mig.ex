@@ -1,8 +1,8 @@
 defmodule Mix.Tasks.Rivet.Mig do
   use Mix.Task
-  import Mix.Generator
   import Transmogrify
   import Rivet.Mix.Common
+  import String, only: [slice: 2]
   require Logger
 
   @moduledoc """
@@ -10,13 +10,15 @@ defmodule Mix.Tasks.Rivet.Mig do
   """
 
   @switches [
-    migration_dir: [:string, :keep],
-    migration_prefix: [:integer, :keep]
+    # migration_dir: [:string, :keep],
+    # migration_prefix: [:integer, :keep]
   ]
+
+  def run(["help"]), do: syntax()
 
   def run(args) do
     case OptionParser.parse(args, strict: @switches) do
-      {opts, ["new", name], []} -> new_migration(opts, name)
+      {opts, ["new", name, label], []} -> new_migration(opts, name, label)
       {opts, ["list"], []} -> list_migrations(opts)
       {opts, ["ls"], []} -> list_migrations(opts)
       {_, ["import"], _} -> syntax("no applications listed")
@@ -30,87 +32,87 @@ defmodule Mix.Tasks.Rivet.Mig do
     IO.inspect({opts, apps})
   end
 
-  defp get_list(opts) do
-    conf = %{migdir: migdir} = option_configs(opts)
-    opts = Keyword.merge([migdir: migdir], opts)
-    {conf, opts, Rivet.Mix.Migration.list_migrations(opts[:migdir])}
+  defp module_base(name) do
+    case String.split("#{name}", ".") do
+      list -> List.last(list)
+    end
   end
 
-  defp new_migration(opts, name) do
-    %{migdir: migdir, base: base} = option_configs(opts)
-    {:ok, next} = Rivet.Mix.Migration.format_migration_index()
-
-    opts = [
-      c_name: modulename(name),
-      c_base: base,
-      c_index: next
-    ]
-
-    name = pathname(name)
-
-    create_file("#{migdir}#{next}_#{name}.exs", migration_template(opts))
+  defp new_migration(opts, name, label) do
+    Rivet.Mix.Migration.add_migration(name, label, opts)
+    # {:ok, next} = Rivet.Mix.Migration.format_migration_index()
+    #
+    # opts = [
+    #   c_name: modulename(name),
+    #   c_base: base,
+    #   c_index: next
+    # ]
+    #
+    # name = pathname(name)
   end
 
   defp list_migrations(opts) do
-    with {_, opts, %{migrations: m, schemas: s}} <- get_list(opts) do
-      migdir = opts[:migdir]
+    option_configs(opts)
 
-      Map.keys(s)
-      |> Enum.sort()
-      |> Enum.each(fn prefix ->
-        IO.puts("\n-- SCHEMA prefix=#{prefix}")
-        max = maxlen_in(Enum.map(s[prefix], fn {_, %{label: l}} -> l end))
-
-        Enum.each(s[prefix], fn {index, vals} ->
-          joined = Path.join(nodot(migdir) ++ ["#{index}_BASE_#{vals.label}.exs"])
-          IO.puts("   #{index} #{String.pad_trailing(vals.label, max)} - #{joined}")
+    with {:ok, migs} <- Rivet.Mix.Migration.migrations() do
+      migs =
+        Enum.map(migs, fn mig ->
+          Map.merge(mig, %{
+            model: module_base(mig.model),
+            module: module_base(mig.module),
+            path: "lib/#{pathname(mig.module)}.exs"
+          })
         end)
-      end)
 
-      maxl = maxlen_in(Map.values(m))
-      maxi = maxlen_in(Map.keys(m))
-      IO.puts("\n-- MIGRATIONS")
+      model_x = maxlen_in(migs, & &1.model)
+      module_x = maxlen_in(migs, & &1.module)
 
-      Map.keys(m)
-      |> Enum.sort()
-      |> Enum.each(fn index ->
-        joined = Path.join(nodot(migdir) ++ ["#{index}_#{m[index]}.exs"])
+      IO.puts(
+        "#{pad("PREFIX", 7, " ")} #{pad("VERSION", 14, " ")} #{pad("MODEL", model_x, " ")}  #{pad("MIGRATION", module_x, " ")} -> PATH"
+      )
+
+      Enum.each(migs, fn mig ->
+        indent = if mig[:base] == true, do: "** ", else: "   "
+        index = pad(mig.index, 18)
+        pre = slice(index, 0..3)
+        ver = slice(index, 4..-1)
 
         IO.puts(
-          "   #{String.pad_trailing(index, maxi)} #{String.pad_trailing(m[index], maxl)} - #{joined}"
+          "#{indent}#{pre} #{ver} #{pad(mig.model, model_x, " ")}  #{pad(mig.module, module_x, " ")} -> #{mig.path}"
         )
       end)
     end
   end
 
-  defp maxlen_in(list), do: Enum.reduce(list, 0, fn i, x -> max(String.length(i), x) end)
-
   ################################################################################
-  defp syntax(err \\ false) do
+  def summary(), do: "list|ls|new|import [...args]"
+
+  def syntax(err \\ false) do
     cmd = Rivet.Mix.Common.task_cmd(__MODULE__)
 
     IO.puts(:stderr, """
     Syntax:
-       mix #{cmd} list|ls
-       mix #{cmd} new {name}
-       mix #{cmd} import {app1} [app2, ...]
 
-    TODO: list options here
+       mix #{cmd} list|ls [-a]
+       mix #{cmd} new {ModelName} {MigrationName}
+       mix #{cmd} pending
+       mix #{cmd} commit
+       mix #{cmd} rollback
+
+    list     — List migrations
+    new      — Create a new migration boilerplate and add it to indexes
+    pending  — show all unapplied migrations
+    commit   — commit all unapplied migrations
+    rollback — undo a migration
+
+    Options:
+
+      -a — when listing migrations, include archived migrations as well
+
     """)
 
     if err do
       IO.puts(:stderr, err)
     end
   end
-
-  embed_template(:migration, """
-  defmodule <%= @c_base %>.Migrations.<%= @c_name %><%= @c_index %> do
-    @moduledoc false
-    use Ecto.Migration
-
-    def change do
-
-    end
-  end
-  """)
 end

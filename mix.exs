@@ -25,7 +25,9 @@ defmodule Rivet.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       aliases: aliases(),
       rivet: [
-        migration_prefix: "00"
+        ## insert default options for adding models
+        # migrations: []
+        # version_strategy: :date # :increment ??
         # app_base: Some.Project.Name, # defaults to modulename form of :app
         # migration_dir: "",
         # lib_dir: "",
@@ -47,7 +49,7 @@ defmodule Rivet.MixProject do
 
   defp aliases do
     [
-      "ecto.setup": ["ecto.create", "ecto.migrate", "core.seeds"],
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate", "test"],
       # keystrokes of life
@@ -58,9 +60,9 @@ defmodule Rivet.MixProject do
   defp deps do
     [
       {:rivet_utils, "~> 1.0.0"},
+      {:ecto_sql, "~> 3.9"},
       {:ecto_enum, "~> 1.0"},
-      {:ecto_sql, "~> 3.7"},
-      {:transmogrify, "~> 1.0.0"},
+      {:transmogrify, "~> 1.0.1"},
       {:yaml_elixir, "~> 2.8.0"},
       {:typed_ecto_schema, "~> 0.3.0 or ~> 0.4.1"},
       {:postgrex, "~> 0.13", only: [:test]},
