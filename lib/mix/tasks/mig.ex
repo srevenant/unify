@@ -5,15 +5,14 @@ defmodule Mix.Tasks.Rivet.Mig do
   import String, only: [slice: 2]
   require Logger
 
-  @moduledoc """
-  Manage Ecto migrations
-  """
+  @shortdoc "list|ls|new|pending|commit|rollback [...args]" # "Manage Rivet migrations"
 
   @switches [
     # migration_dir: [:string, :keep],
     # migration_prefix: [:integer, :keep]
   ]
 
+  @impl true
   def run(["help"]), do: syntax()
 
   def run(args) do

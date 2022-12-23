@@ -6,6 +6,7 @@ defmodule Mix.Tasks.Rivet.Model do
   require Logger
   import Rivet.Mix.Common
 
+  @shortdoc "{path/to/module} [options]"
   @moduledoc """
   Generate a new Rivet Model structure
   """
@@ -61,6 +62,7 @@ defmodule Mix.Tasks.Rivet.Model do
     t: :test
   ]
 
+  @impl true
   def run(args) do
     case OptionParser.parse(args, strict: @switches, aliases: @aliases) do
       {opts, [path_name], []} ->
