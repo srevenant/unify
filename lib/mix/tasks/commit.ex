@@ -51,7 +51,8 @@ defmodule Mix.Tasks.Rivet.Commit do
   def run(args) do
     migrator = &Ecto.Migrator.run/4
     # brittle for now
-    {:ok, migs} = get_migrations(args)
+    {:ok, cfg, _, migs} = get_migrations(args)
+    IO.inspect(cfg)
     repos = parse_repo(args)
     {opts, _} = OptionParser.parse!(args, strict: @switches, aliases: [])
 
@@ -85,7 +86,8 @@ defmodule Mix.Tasks.Rivet.Commit do
   defp get_migrations(opts) do
     with {:ok, cfg, opts} <- option_configs(opts),
          {:ok, migs} <- Rivet.Mix.Migration.migrations(cfg, opts) do
-      {:ok,
+           IO.inspect(migs)
+      {:ok, cfg, opts,
        Enum.map(migs, fn %{module: mod, version: ver, path: path} ->
          Code.require_file(path)
          if Code.ensure_loaded?(mod) and function_exported?(mod, :__migration__, 0) do
