@@ -167,6 +167,9 @@ defmodule Rivet.Mix.Migration do
               end
           end
         end)
+      {:error, err} ->
+        IO.puts(:stderr, err)
+        out
     end
   end
 
