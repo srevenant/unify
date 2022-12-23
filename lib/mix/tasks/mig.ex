@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.Rivet.Mig do
   use Mix.Task
-  import Transmogrify
   import Rivet.Mix.Common
   import String, only: [slice: 2]
   require Logger
@@ -49,7 +48,6 @@ defmodule Mix.Tasks.Rivet.Mig do
           Map.merge(mig, %{
             model: module_base(mig.model),
             module: module_base(mig.module),
-            path: "lib/#{pathname(mig.module)}.exs"
           })
         end)
 
