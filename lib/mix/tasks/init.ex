@@ -10,8 +10,12 @@ defmodule Mix.Tasks.Rivet.Init do
 
   @impl true
   def run(_args) do
-    if not File.exists?(@migrations_file) do
       create_file(@migrations_file, Templates.empty_list([]))
-    end
+      IO.puts("""
+      
+      Create your first model with:
+
+         mix rivet model {name}
+      """)
   end
 end
