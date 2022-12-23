@@ -122,6 +122,14 @@ defmodule Rivet.Mix.Migration do
   #   end
   # end
 
+  def migration_model(mod) do
+    case String.split("#{mod}", ".") |> Enum.reverse() do
+      # Project.Name.Model.Migration -> ["Migration", "Model", "Name", "Project", "Elixir"]
+      [_, model | _] -> model
+    end
+  end
+
+
   def migrations(%{modpath: moddir}, opts \\ []) do
     if not File.exists?(@migrations_file) do
       {:error, "Migrations file is missing (#{@migrations_file})"}
@@ -136,9 +144,9 @@ defmodule Rivet.Mix.Migration do
                 IO.puts(:stderr, "Invalid migration (no include key), #{inspect(cfg)}")
 
               mod ->
-                model = module_pop(mod)
+                model = migration_model(mod)
                 cfg = Map.put(cfg, :model, model)
-                path = Path.join(moddir, Transmogrify.pathname(module_shift(mod)))
+                path = Path.join(Path.split(moddir) ++ [Transmogrify.pathname(model), "migrations"])
 
                 out
                 |> flatten_migrations(cfg, path, @index_file, true)
