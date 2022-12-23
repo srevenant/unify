@@ -412,12 +412,11 @@ defmodule Rivet.Mix.Migration do
 
   ##############################################################################
   defp load_config_file(path) do
-    {opts, _} = Code.eval_file(path)
-
-    #    if Keyword.keyword?(opts) do
-    {:ok, opts}
-    #    else
-    #      {:error, "Expected #{inspect(path)} to return a keyword list, got: #{inspect(opts)}"}
-    #    end
+    if File.exists?(path) do
+      {opts, _} = Code.eval_file(path)
+      {:ok, opts}
+    else
+      {:error, "Cannot find file #{path}"}
+    end
   end
 end

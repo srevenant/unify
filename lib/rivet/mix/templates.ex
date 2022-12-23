@@ -57,7 +57,7 @@ defmodule Rivet.Mix.Templates do
   def base_migration(opts), do: base_migration_template(opts)
 
   embed_template(:base_migration, """
-  defmodule <%= @c_mod %>.Migrations.Root do
+  defmodule <%= @c_mod %>.Migrations.Base do
     @moduledoc false
     use Ecto.Migration
 
