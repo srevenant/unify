@@ -13,11 +13,12 @@ defmodule Mix.Tasks.Rivet do
   @impl true
   def run(_) do
     Application.ensure_all_started(:rivet)
-    Mix.shell().info "Rivet v#{Application.spec(:rivet, :vsn)}"
-    Mix.shell().info "A toolkit for managing models in Elixir, working with Ecto."
-    Mix.shell().info "\nAvailable tasks:\n"
+    Mix.shell().info("Rivet v#{Application.spec(:rivet, :vsn)}")
+    Mix.shell().info("A toolkit for managing models in Elixir, working with Ecto.")
+    Mix.shell().info("\nAvailable tasks:\n")
     Mix.Tasks.Help.run(["--search", "rivet."])
   end
+
   # @impl true
   # def run([cmd | args]) do
   #   Module.safe_concat(__MODULE__, Macro.camelize(cmd)).run(args)

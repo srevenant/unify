@@ -5,7 +5,8 @@ defmodule Mix.Tasks.Rivet.Mig do
   import String, only: [slice: 2]
   require Logger
 
-  @shortdoc "list|ls|new|pending|commit|rollback [...args]" # "Manage Rivet migrations"
+  # "Manage Rivet migrations"
+  @shortdoc "list|ls|new|pending|commit|rollback [...args]"
 
   @switches [
     # migration_dir: [:string, :keep],
@@ -43,33 +44,37 @@ defmodule Mix.Tasks.Rivet.Mig do
   defp list_migrations(opts) do
     option_configs(opts)
 
-    with {:ok, migs} <- Rivet.Mix.Migration.migrations() do
-      migs =
-        Enum.map(migs, fn mig ->
-          Map.merge(mig, %{
-            model: module_base(mig.model),
-            module: module_base(mig.module),
-            path: "lib/#{pathname(mig.module)}.exs"
-          })
-        end)
+    case Rivet.Mix.Migration.migrations() do
+      {:ok, migs} ->
+        migs =
+          Enum.map(migs, fn mig ->
+            Map.merge(mig, %{
+              model: module_base(mig.model),
+              module: module_base(mig.module),
+              path: "lib/#{pathname(mig.module)}.exs"
+            })
+          end)
 
-      model_x = maxlen_in(migs, & &1.model)
-      module_x = maxlen_in(migs, & &1.module)
-
-      IO.puts(
-        "#{pad("PREFIX", 7, " ")} #{pad("VERSION", 14, " ")} #{pad("MODEL", model_x, " ")}  #{pad("MIGRATION", module_x, " ")} -> PATH"
-      )
-
-      Enum.each(migs, fn mig ->
-        indent = if mig[:base] == true, do: "** ", else: "   "
-        index = pad(mig.index, 18)
-        pre = slice(index, 0..3)
-        ver = slice(index, 4..-1)
+        model_x = maxlen_in(migs, & &1.model)
+        module_x = maxlen_in(migs, & &1.module)
 
         IO.puts(
-          "#{indent}#{pre} #{ver} #{pad(mig.model, model_x, " ")}  #{pad(mig.module, module_x, " ")} -> #{mig.path}"
+          "#{pad("PREFIX", 7, " ")} #{pad("VERSION", 14, " ")} #{pad("MODEL", model_x, " ")}  #{pad("MIGRATION", module_x, " ")} -> PATH"
         )
-      end)
+
+        Enum.each(migs, fn mig ->
+          indent = if mig[:base] == true, do: "** ", else: "   "
+          index = pad(mig.index, 18)
+          pre = slice(index, 0..3)
+          ver = slice(index, 4..-1)
+
+          IO.puts(
+            "#{indent}#{pre} #{ver} #{pad(mig.model, model_x, " ")}  #{pad(mig.module, module_x, " ")} -> #{mig.path}"
+          )
+        end)
+
+      {:error, msg} ->
+        IO.puts(:stderr, msg)
     end
   end
 
@@ -82,12 +87,12 @@ defmodule Mix.Tasks.Rivet.Mig do
     IO.puts(:stderr, """
     Syntax:
 
-       mix #{cmd} list|ls [-a]
-       mix #{cmd} new {ModelName} {MigrationName}
-       mix #{cmd} import {library}
-       mix #{cmd} pending
-       mix #{cmd} commit
-       mix #{cmd} rollback
+       mix.#{cmd} list|ls [-a]
+       mix.#{cmd} new {ModelName} {MigrationName}
+       mix.#{cmd} import {library}
+       mix.#{cmd} pending
+       mix.#{cmd} commit
+       mix.#{cmd} rollback
 
     list     — List migrations
     new      — Create a new migration boilerplate and add it to indexes

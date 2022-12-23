@@ -121,28 +121,33 @@ defmodule Rivet.Mix.Migration do
   #   end
   # end
 
+  @migfile ".migrations.exs"
   def migrations(opts \\ []) do
-    with {:ok, migs} <- load_config_file(".migrations.exs") do
-      {migs, _} =
-        Enum.reduce(migs, {%{}, %{}}, fn cfg, out ->
-          cfg = Map.new(cfg)
+    if not File.exists?(@migfile) do
+      {:error, "Migrations file is missing (#{@migfile})"}
+    else
+      with {:ok, migs} <- load_config_file(@migfile) do
+        {migs, _} =
+          Enum.reduce(migs, {%{}, %{}}, fn cfg, out ->
+            cfg = Map.new(cfg)
 
-          case cfg[:include] do
-            nil ->
-              IO.puts(:stderr, "Invalid migration (no include key), #{inspect(cfg)}")
+            case cfg[:include] do
+              nil ->
+                IO.puts(:stderr, "Invalid migration (no include key), #{inspect(cfg)}")
 
-            mod ->
-              model = module_pop(mod)
-              cfg = Map.put(cfg, :model, model)
-              path = Path.join("lib/", Transmogrify.pathname(mod))
+              mod ->
+                model = module_pop(mod)
+                cfg = Map.put(cfg, :model, model)
+                path = Path.join("lib/", Transmogrify.pathname(mod))
 
-              out
-              |> flatten_migrations(cfg, path, ".index.exs", true)
-              |> flatten_migrations(cfg, path, ".archive.exs", opts[:archive])
-          end
-        end)
+                out
+                |> flatten_migrations(cfg, path, ".index.exs", true)
+                |> flatten_migrations(cfg, path, ".archive.exs", opts[:archive])
+            end
+          end)
 
-      {:ok, Map.keys(migs) |> Enum.sort() |> Enum.map(&migs[&1])}
+        {:ok, Map.keys(migs) |> Enum.sort() |> Enum.map(&migs[&1])}
+      end
     end
   end
 
