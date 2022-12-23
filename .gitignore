@@ -25,3 +25,5 @@ erl_crash.dump
 
 src/priv/plts/*.plt
 src/priv/plts/*.plt.hash
+
+/.migrations.exs

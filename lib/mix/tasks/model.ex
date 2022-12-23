@@ -5,6 +5,7 @@ defmodule Mix.Tasks.Rivet.Model do
   import Transmogrify
   require Logger
   import Rivet.Mix.Common
+  use Rivet
 
   @shortdoc "{path/to/module} [options]"
   @moduledoc """
@@ -35,14 +36,13 @@ defmodule Mix.Tasks.Rivet.Model do
 
   @switches [
     lib_dir: [:string, :keep],
+    mod_dir: [:string, :keep],
     test_dir: [:string, :keep],
-    # migration_prefix: [:integer, :keep],
-    "app-base": [:string, :keep],
+    app_base: [:string, :keep],
     order: [:integer, :keep],
     model: :boolean,
     db: :boolean,
     ab_cd: :boolean,
-    migration: :boolean,
     loader: :boolean,
     seeds: :boolean,
     graphql: :boolean,
@@ -66,7 +66,9 @@ defmodule Mix.Tasks.Rivet.Model do
   def run(args) do
     case OptionParser.parse(args, strict: @switches, aliases: @aliases) do
       {opts, [path_name], []} ->
-        configure_model(Keyword.merge(@switch_info, opts), path_name)
+        Keyword.merge(@switch_info, opts)
+        |> option_configs()
+        |> configure_model(path_name)
 
       {_, _, errs} ->
         syntax()
@@ -75,22 +77,15 @@ defmodule Mix.Tasks.Rivet.Model do
     end
   end
 
-  defp configure_model(opts, path_name) do
-    %{
-      app: app,
-      moddir: moddir,
-      testdir: testdir,
-      base: base
-    } = option_configs(opts)
-
+  defp configure_model(
+         {:ok, %{app: app, modpath: moddir, testpath: testdir, base: base}, opts},
+         path_name
+       ) do
     {mod, dir} = Path.split(path_name) |> List.pop_at(-1)
 
-    moddir = Path.split(moddir)
-    testdir = Path.split(testdir)
-
     table = pathname(mod)
-    moddir = Path.join(moddir ++ ["#{app}"] ++ dir ++ [table])
-    testdir = Path.join(testdir ++ ["#{app}"] ++ dir ++ [table])
+    moddir = Path.join(Path.split(moddir) ++ dir ++ [table])
+    testdir = Path.join(Path.split(testdir) ++ dir ++ [table])
     model = modulename(mod)
     # prefix our config opts with `c_` so they don't collide with command-line opts
     opts =
@@ -147,28 +142,27 @@ defmodule Mix.Tasks.Rivet.Model do
     if dopts.migration do
       migdir = Path.join(moddir, "migrations")
       create_directory(migdir)
-      create_file(Path.join(migdir, ".index.exs"), Templates.migrations(opts))
-      create_file(Path.join(migdir, ".archive.exs"), Templates.empty_list(opts))
+      create_file(Path.join(migdir, @index_file), Templates.migrations(opts))
+      create_file(Path.join(migdir, @archive_file), Templates.empty_list(opts))
       create_file(Path.join(migdir, "base.exs"), Templates.base_migration(opts))
-      migrations = ".migrations.exs"
       basemod = as_module("#{opts[:c_mod]}.Migrations")
 
-      if not File.exists?(migrations) do
-        create_file(migrations, Templates.empty_list(opts))
+      if not File.exists?(@migrations_file) do
+        create_file(@migrations_file, Templates.empty_list(opts))
       end
 
-      case Rivet.Mix.Migration.add_migration_include(migrations, basemod) do
+      case Rivet.Mix.Migration.add_migration_include(@migrations_file, basemod) do
         {:exists, _prefix} ->
           IO.puts("""
 
-          Model already exists in `#{migrations}`, not adding
+          Model already exists in `#{@migrations_file}`, not adding
 
           """)
 
         {:ok, mig} ->
           IO.puts("""
 
-          Model added to `#{migrations}` with prefix `#{mig[:prefix]}`
+          Model added to `#{@migrations_file}` with prefix `#{mig[:prefix]}`
 
           """)
 
@@ -176,6 +170,10 @@ defmodule Mix.Tasks.Rivet.Model do
           IO.puts(:stderr, error)
       end
     end
+  end
+
+  defp configure_model({:error, reason}, _) do
+    IO.puts(:stderr, reason)
   end
 
   ################################################################################

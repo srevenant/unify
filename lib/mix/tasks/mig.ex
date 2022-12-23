@@ -42,7 +42,7 @@ defmodule Mix.Tasks.Rivet.Mig do
     do: Rivet.Mix.Migration.add_migration(name, label, opts)
 
   defp list_migrations(opts) do
-    option_configs(opts)
+    # option_configs(opts)
 
     case Rivet.Mix.Migration.migrations() do
       {:ok, migs} ->

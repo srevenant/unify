@@ -13,14 +13,19 @@ defmodule Mix.Tasks.Rivet do
   @impl true
   def run(args) do
     case args do
-      [] -> list_commands()
-      ["help"] -> list_commands()
+      [] ->
+        list_commands()
+
+      ["help"] ->
+        list_commands()
+
       [cmd | args] ->
         try do
           Module.safe_concat(__MODULE__, Macro.camelize(cmd)).run(args)
-        rescue _ in ArgumentError ->
-          list_commands()
-          IO.puts(:stderr, "\nRivet command not found: `#{cmd}`\n")
+        rescue
+          _ in ArgumentError ->
+            list_commands()
+            IO.puts(:stderr, "\nRivet command not found: `#{cmd}`\n")
         end
     end
   end

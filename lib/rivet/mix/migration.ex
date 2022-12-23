@@ -6,34 +6,35 @@ defmodule Rivet.Mix.Migration do
   alias Rivet.Mix.Templates
   import Mix.Generator
   import Transmogrify
+  use Rivet
 
   # @default_step 100
   # @default_index %{schemas: %{}, migrations: %{}}
   # @version_width 14
   def add_migration(model, label, opts \\ []) do
-    opts = option_configs(opts)
-    ver = (opts[:version] || datestamp()) |> as_int!()
-    parts = module_parts(model, label, ver, opts)
+    with {:ok, opts, _} <- option_configs(opts) do
+      ver = (opts[:version] || datestamp()) |> as_int!()
+      parts = module_parts(model, label, ver, opts)
 
-    cond do
-      not File.exists?(parts.path.model) ->
-        {:error, "Model not found `#{parts.name.model}` in `#{parts.path.model}`"}
+      cond do
+        not File.exists?(parts.path.model) ->
+          {:error, "Model not found `#{parts.name.model}` in `#{parts.path.model}`"}
 
-      not File.exists?(parts.path.migrations) ->
-        {:error,
-         "Model Migrations not found `#{parts.name.migrations}` in `#{parts.path.migrations}`"}
+        not File.exists?(parts.path.migrations) ->
+          {:error,
+           "Model Migrations not found `#{parts.name.migrations}` in `#{parts.path.migrations}`"}
 
-      # TODO: figure out how it'llwork so we can put version in path, and check
-      # if module exists by name, without version#. Code.module_exists() doesn't
-      # work with .exs files...
-      File.exists?(parts.path.migration) ->
-        {:error,
-         "Model Migration already exists `#{parts.name.migration}` in `#{parts.path.migration}`"}
+        # TODO: figure out how it'llwork so we can put version in path, and check
+        # if module exists by name, without version#. Code.module_exists() doesn't
+        # work with .exs files...
+        File.exists?(parts.path.migration) ->
+          {:error,
+           "Model Migration already exists `#{parts.name.migration}` in `#{parts.path.migration}`"}
 
-      true ->
-        create_migration(parts, opts)
+        true ->
+          create_migration(parts, opts)
+      end
     end
-    |> IO.inspect()
   end
 
   defp create_migration(parts, opts) do
@@ -121,12 +122,11 @@ defmodule Rivet.Mix.Migration do
   #   end
   # end
 
-  @migfile ".migrations.exs"
   def migrations(opts \\ []) do
-    if not File.exists?(@migfile) do
-      {:error, "Migrations file is missing (#{@migfile})"}
+    if not File.exists?(@migrations_file) do
+      {:error, "Migrations file is missing (#{@migrations_file})"}
     else
-      with {:ok, migs} <- load_config_file(@migfile) do
+      with {:ok, migs} <- load_config_file(@migrations_file) do
         {migs, _} =
           Enum.reduce(migs, {%{}, %{}}, fn cfg, out ->
             cfg = Map.new(cfg)

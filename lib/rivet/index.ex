@@ -6,4 +6,12 @@ defmodule Rivet do
 
   `Rivet` is a series of helper libraries for elixir applications wanting help in their Rivets projects.
   """
+
+  defmacro __using__(_) do
+    quote do
+      @migrations_file ".migrations.exs"
+      @index_file ".index.exs"
+      @archive_file ".archive.exs"
+    end
+  end
 end

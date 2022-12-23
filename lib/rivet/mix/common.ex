@@ -5,7 +5,6 @@ defmodule Rivet.Mix.Common do
   @moduledoc """
   Common calls across mix tasks
   """
-
   def getconf(key, opts, conf, default), do: opts[key] || conf[key] || default
 
   def cleandir(path) do
@@ -42,16 +41,34 @@ defmodule Rivet.Mix.Common do
     config = Mix.Project.config()
     uconf = config[:rivet] || []
     app = config[:app] || :APP_MISSING
+    libdir = getconf(:lib_dir, opts, uconf, "./lib/") |> cleandir()
+    testdir = getconf(:test_dir, opts, uconf, "./test/") |> cleandir()
+    moddir = getconf(:mod_dir, opts, uconf, "#{app}") |> cleandir()
 
-    %{
-      conf: config,
-      uconf: uconf,
-      app: app,
-      moddir: getconf(:lib_dir, opts, uconf, "./lib/") |> cleandir(),
-      testdir: getconf(:test_dir, opts, uconf, "./test/") |> cleandir(),
-      # migdir: getconf(:migration_dir, opts, uconf, "./priv/repo/migrations/") |> cleandir(),
-      base: uconf[:app_base] || modulename("#{app}")
-    }
+    with {:ok, modpath, testpath} <- get_paths(moddir, libdir, testdir) do
+      {:ok,
+       %{
+         conf: config,
+         uconf: uconf,
+         app: app,
+         libdir: libdir,
+         moddir: moddir,
+         modpath: modpath,
+         testdir: testdir,
+         testpath: testpath,
+         base: modulename(getconf(:app_base, opts, uconf, "#{app}"))
+       }, opts}
+    end
+  end
+
+  def get_paths(moddir, libdir, testdir) do
+    modpath = Path.join([libdir, moddir])
+
+    if File.dir?(modpath) do
+      {:ok, modpath, Path.join([testdir, moddir])}
+    else
+      {:error, "--mod-dir #{modpath} doesn't exist"}
+    end
   end
 
   def nodot(path) do
