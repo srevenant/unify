@@ -11,3 +11,8 @@ Library Contributors: Mark Erickson, Brandon Gillespie, Lyle Mantooth, Jake Wood
 # TODO:
 
 * Add factory generation
+* mix mig:
+  - commit 
+  - import
+  - pending
+  - rollback

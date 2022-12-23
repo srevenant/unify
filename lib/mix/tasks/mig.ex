@@ -38,18 +38,8 @@ defmodule Mix.Tasks.Rivet.Mig do
     end
   end
 
-  defp new_migration(opts, name, label) do
-    Rivet.Mix.Migration.add_migration(name, label, opts)
-    # {:ok, next} = Rivet.Mix.Migration.format_migration_index()
-    #
-    # opts = [
-    #   c_name: modulename(name),
-    #   c_base: base,
-    #   c_index: next
-    # ]
-    #
-    # name = pathname(name)
-  end
+  defp new_migration(opts, name, label),
+    do: Rivet.Mix.Migration.add_migration(name, label, opts)
 
   defp list_migrations(opts) do
     option_configs(opts)
@@ -85,7 +75,7 @@ defmodule Mix.Tasks.Rivet.Mig do
   end
 
   ################################################################################
-  def summary(), do: "list|ls|new|import [...args]"
+  def summary(), do: "list|ls|new|pending|commit|rollback [...args]"
 
   def syntax(err \\ false) do
     cmd = Rivet.Mix.Common.task_cmd(__MODULE__)
@@ -95,6 +85,7 @@ defmodule Mix.Tasks.Rivet.Mig do
 
        mix #{cmd} list|ls [-a]
        mix #{cmd} new {ModelName} {MigrationName}
+       mix #{cmd} import {library}
        mix #{cmd} pending
        mix #{cmd} commit
        mix #{cmd} rollback
@@ -104,6 +95,7 @@ defmodule Mix.Tasks.Rivet.Mig do
     pending  — show all unapplied migrations
     commit   — commit all unapplied migrations
     rollback — undo a migration
+    import   — import migrations from an third-party library
 
     Options:
 

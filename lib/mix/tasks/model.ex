@@ -23,14 +23,14 @@ defmodule Mix.Tasks.Rivet.Model do
     cache: [default: false]
   ]
 
-  @defaults Enum.reduce(@switch_info, %{}, fn {k, opts}, acc ->
-              if Keyword.has_key?(opts, :default) do
-                Map.put(acc, k, opts[:default])
-              else
-                acc
-              end
-            end)
-            |> Map.to_list()
+  # @defaults Enum.reduce(@switch_info, %{}, fn {k, opts}, acc ->
+  #             if Keyword.has_key?(opts, :default) do
+  #               Map.put(acc, k, opts[:default])
+  #             else
+  #               acc
+  #             end
+  #           end)
+  #           |> Map.to_list()
 
   @switches [
     lib_dir: [:string, :keep],
@@ -75,7 +75,6 @@ defmodule Mix.Tasks.Rivet.Model do
 
   defp configure_model(opts, path_name) do
     %{
-      uconf: uconf,
       app: app,
       moddir: moddir,
       testdir: testdir,
@@ -157,7 +156,7 @@ defmodule Mix.Tasks.Rivet.Model do
       end
 
       case Rivet.Mix.Migration.add_migration_include(migrations, basemod) do
-        {:exists, prefix} ->
+        {:exists, _prefix} ->
           IO.puts("""
 
           Model already exists in `#{migrations}`, not adding
@@ -180,7 +179,7 @@ defmodule Mix.Tasks.Rivet.Model do
   ################################################################################
   def summary(), do: "{path/to/module} [options]"
 
-  def syntax(opts \\ nil) do
+  def syntax(_opts \\ nil) do
     cmd = Rivet.Mix.Common.task_cmd(__MODULE__)
 
     IO.puts(:stderr, """
@@ -202,7 +201,7 @@ defmodule Mix.Tasks.Rivet.Model do
       end)
 
     # switches as strings for sorting
-    Enum.map(switches, fn {k, v} -> to_string(k) end)
+    Enum.map(switches, fn {k, _} -> to_string(k) end)
     |> Enum.sort()
     |> list_options(Map.new(switches), aliases, Map.new(info))
   end
@@ -215,13 +214,13 @@ defmodule Mix.Tasks.Rivet.Model do
 
   def list_options([], _, _, _), do: :ok
 
-  def list_option(opt, optkey, :boolean, aliases, info) do
+  def list_option(opt, _optkey, :boolean, _aliases, info) do
     {a, b} = if info[:default] == true, do: {"", "no-"}, else: {"no-", ""}
     # TODO: how does python list boolean defaults
     IO.puts(:stderr, "  --#{a}#{opt}|--#{b}#{opt}")
   end
 
-  def list_option(opt, optkey, [type, :keep], alaises, info) do
+  def list_option(opt, _optkey, [type, :keep], _aliases, _info) do
     IO.puts(:stderr, "  --#{opt}=#{to_string(type) |> String.upcase()}")
   end
 end
