@@ -1,5 +1,5 @@
 defmodule Rivet.Mix.Templates do
-  use Mix.Task
+  # use Mix.Task
   import Mix.Generator
 
   ################################################################################
