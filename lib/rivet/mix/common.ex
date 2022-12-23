@@ -67,7 +67,7 @@ defmodule Rivet.Mix.Common do
     if File.dir?(modpath) do
       {:ok, modpath, Path.join([testdir, moddir])}
     else
-      {:error, "--mod-dir #{modpath} doesn't exist"}
+      {:error, "Folder #{modpath} doesn't exist (try: --mod-dir=#{moddir} or --lib-dir=#{libdir})"}
     end
   end
 
