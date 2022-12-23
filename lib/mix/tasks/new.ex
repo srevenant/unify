@@ -1,16 +1,16 @@
-defmodule Mix.Tasks.Rivet.Model do
+defmodule Mix.Tasks.Rivet.New do
   use Mix.Task
   alias Rivet.Mix.Templates
   import Mix.Generator
   import Transmogrify
   require Logger
   import Rivet.Mix.Common
+  import Rivet.Mix.Migration, only: [add_migration: 3]
   use Rivet
 
-  @shortdoc "{path/to/module} [options]"
-  @moduledoc """
-  Generate a new Rivet Model structure
-  """
+  @shortdoc "Create a new Rivet Model or Model Migration"
+
+  @moduledoc @shortdoc
 
   @switch_info [
     model: [default: true],
@@ -35,12 +35,12 @@ defmodule Mix.Tasks.Rivet.Model do
   #           |> Map.to_list()
 
   @switches [
-    lib_dir: [:string, :keep],
-    mod_dir: [:string, :keep],
-    test_dir: [:string, :keep],
-    app_base: [:string, :keep],
+    # lib_dir: [:string, :keep],
+    # mod_dir: [:string, :keep],
+    # test_dir: [:string, :keep],
+    # app_base: [:string, :keep],
     order: [:integer, :keep],
-    model: :boolean,
+    # model: :boolean,
     db: :boolean,
     ab_cd: :boolean,
     loader: :boolean,
@@ -64,11 +64,11 @@ defmodule Mix.Tasks.Rivet.Model do
 
   @impl true
   def run(args) do
-    case OptionParser.parse(args, strict: @switches, aliases: @aliases) do
-      {opts, [path_name], []} ->
+    case parse_options(args, @switches, @aliases) do
+      {opts, args, []} ->
         Keyword.merge(@switch_info, opts)
         |> option_configs()
-        |> configure_model(path_name)
+        |> new(args)
 
       {_, _, errs} ->
         syntax()
@@ -76,6 +76,11 @@ defmodule Mix.Tasks.Rivet.Model do
         IO.inspect(errs, label: "bad arguments")
     end
   end
+
+  def new(opts, ["model", model_name]), do: configure_model(opts, model_name)
+  def new(opts, ["mig", model, label]), do: add_migration(model, label, opts)
+  def new(opts, ["migration", model, label]), do: add_migration(model, label, opts)
+  def new(_, _), do: syntax()
 
   defp configure_model(
          {:ok, %{app: app, modpath: moddir, testpath: testdir, base: base}, opts},
@@ -177,8 +182,6 @@ defmodule Mix.Tasks.Rivet.Model do
   end
 
   ################################################################################
-  def summary(), do: "{path/to/module} [options]"
-
   def syntax(_opts \\ nil) do
     cmd = Rivet.Mix.Common.task_cmd(__MODULE__)
 

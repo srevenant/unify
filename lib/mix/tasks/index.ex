@@ -8,7 +8,22 @@ defmodule Mix.Tasks.Rivet do
 
       $ mix rivet help|{cmd}
 
+  x   rivet init
+  x   rivet new model name
+  x   rivet new migration project name
+      rivet list model
+  x   rivet list migration
+      rivet import
+      rivet pending
+  .   rivet commit
+      rivet rollback
   """
+  @aliases %{
+    "n" => "new",
+    "ls" => "list",
+    "l" => "list",
+    "c" => "commit"
+  }
 
   @impl true
   def run(args) do
@@ -20,6 +35,12 @@ defmodule Mix.Tasks.Rivet do
         list_commands()
 
       [cmd | args] ->
+        cmd =
+          case @aliases[cmd] do
+            nil -> cmd
+            cmd -> cmd
+          end
+
         try do
           Module.safe_concat(__MODULE__, Macro.camelize(cmd)).run(args)
         rescue
@@ -28,6 +49,9 @@ defmodule Mix.Tasks.Rivet do
             IO.puts(:stderr, "\nRivet command not found: `#{cmd}`\n")
         end
     end
+  end
+
+  defp get_full(cmd) do
   end
 
   defp list_commands() do

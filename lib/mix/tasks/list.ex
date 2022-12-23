@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Rivet.Mig do
+defmodule Mix.Tasks.Rivet.List do
   use Mix.Task
   import Rivet.Mix.Common
   import String, only: [slice: 2]
@@ -7,38 +7,28 @@ defmodule Mix.Tasks.Rivet.Mig do
   # "Manage Rivet migrations"
   @shortdoc "list|ls|new|pending|commit|rollback [...args]"
 
-  @switches [
-    # migration_dir: [:string, :keep],
-    # migration_prefix: [:integer, :keep]
-  ]
-
   @impl true
   def run(["help"]), do: syntax()
 
   def run(args) do
-    case OptionParser.parse(args, strict: @switches) do
-      {opts, ["new", name, label], []} -> new_migration(opts, name, label)
-      {opts, ["list"], []} -> list_migrations(opts)
-      {opts, ["ls"], []} -> list_migrations(opts)
-      {_, ["import"], _} -> syntax("no applications listed")
-      {opts, ["import" | rest], []} -> import_migrations(opts, rest)
+    case parse_options(args, [archive: :boolean], a: :archive) do
+      {opts, ["model"], _} -> list_models(opts)
+      {opts, ["models"], _} -> list_models(opts)
+      {opts, ["mig"], _} -> list_migrations(opts)
+      {opts, ["migration"], _} -> list_migrations(opts)
+      {opts, ["migrations"], _} -> list_migrations(opts)
       {_, _, []} -> syntax()
       {_, _, errs} -> syntax(inspect(errs, label: "bad arguments"))
     end
   end
 
-  defp import_migrations(opts, apps) do
-    IO.inspect({opts, apps})
-  end
+  defp list_models(_opts), do: IO.puts("To be implemented")
 
   defp module_base(name) do
     case String.split("#{name}", ".") do
       list -> List.last(list)
     end
   end
-
-  defp new_migration(opts, name, label),
-    do: Rivet.Mix.Migration.add_migration(name, label, opts)
 
   defp list_migrations(opts) do
     with {:ok, cfg, opts} <- option_configs(opts),
@@ -47,7 +37,7 @@ defmodule Mix.Tasks.Rivet.Mig do
         Enum.map(migs, fn mig ->
           Map.merge(mig, %{
             model: module_base(mig.model),
-            module: module_base(mig.module),
+            module: module_base(mig.module)
           })
         end)
 
@@ -75,27 +65,14 @@ defmodule Mix.Tasks.Rivet.Mig do
   end
 
   ################################################################################
-  def summary(), do: "list|ls|new|pending|commit|rollback [...args]"
-
   def syntax(err \\ false) do
     cmd = Rivet.Mix.Common.task_cmd(__MODULE__)
 
     IO.puts(:stderr, """
-    Syntax:
+    Availble Tasks:
 
-       mix.#{cmd} list|ls [-a]
-       mix.#{cmd} new {ModelName} {MigrationName}
-       mix.#{cmd} import {library}
-       mix.#{cmd} pending
-       mix.#{cmd} commit
-       mix.#{cmd} rollback
-
-    list     — List migrations
-    new      — Create a new migration boilerplate and add it to indexes
-    pending  — show all unapplied migrations
-    commit   — commit all unapplied migrations
-    rollback — undo a migration
-    import   — import migrations from an third-party library
+       mix #{cmd} model|models
+       mix #{cmd} mig|migrations
 
     Options:
 
