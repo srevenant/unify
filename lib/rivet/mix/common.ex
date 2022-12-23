@@ -31,6 +31,12 @@ defmodule Rivet.Mix.Common do
   def module_pop(mod),
     do: String.split("#{mod}", ".") |> Enum.slice(0..-2) |> Enum.join(".") |> as_module()
 
+  def module_shift(mod) when is_binary(mod),
+    do: String.split(mod, ".") |> Enum.slice(1..-1) |> Enum.join(".") |> as_module()
+
+  def module_shift(mod) when is_atom(mod),
+    do: String.split("#{mod}", ".") |> Enum.slice(2..-1) |> Enum.join(".") |> as_module()
+
   def pad(s, w, fill \\ "0")
   def pad(s, w, fill) when is_binary(s) and w < 0, do: String.pad_trailing(s, abs(w), fill)
   def pad(s, w, fill) when is_binary(s), do: String.pad_leading(s, w, fill)
@@ -67,7 +73,8 @@ defmodule Rivet.Mix.Common do
     if File.dir?(modpath) do
       {:ok, modpath, Path.join([testdir, moddir])}
     else
-      {:error, "Folder #{modpath} doesn't exist (try: --mod-dir=#{moddir} or --lib-dir=#{libdir})"}
+      {:error,
+       "Folder #{modpath} doesn't exist (try: --mod-dir=#{moddir} or --lib-dir=#{libdir})"}
     end
   end
 

@@ -83,7 +83,7 @@ defmodule Mix.Tasks.Rivet.Model do
        ) do
     {mod, dir} = Path.split(path_name) |> List.pop_at(-1)
 
-    table = "#{pathname(mod)}s"
+    table = pathname(mod)
     moddir = Path.join(Path.split(moddir) ++ dir ++ [table])
     testdir = Path.join(Path.split(testdir) ++ dir ++ [table])
     model = modulename(mod)
@@ -93,7 +93,7 @@ defmodule Mix.Tasks.Rivet.Model do
         c_app: app,
         c_base: base,
         c_model: model,
-        c_table: table,
+        c_table: "#{table}s",
         c_mod: "#{base}.#{model}"
       )
 

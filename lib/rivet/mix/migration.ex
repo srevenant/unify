@@ -122,7 +122,7 @@ defmodule Rivet.Mix.Migration do
   #   end
   # end
 
-  def migrations(opts \\ []) do
+  def migrations(%{modpath: moddir}, opts \\ []) do
     if not File.exists?(@migrations_file) do
       {:error, "Migrations file is missing (#{@migrations_file})"}
     else
@@ -138,11 +138,11 @@ defmodule Rivet.Mix.Migration do
               mod ->
                 model = module_pop(mod)
                 cfg = Map.put(cfg, :model, model)
-                path = Path.join("lib/", Transmogrify.pathname(mod))
+                path = Path.join(moddir, Transmogrify.pathname(module_shift(mod)))
 
                 out
-                |> flatten_migrations(cfg, path, ".index.exs", true)
-                |> flatten_migrations(cfg, path, ".archive.exs", opts[:archive])
+                |> flatten_migrations(cfg, path, @index_file, true)
+                |> flatten_migrations(cfg, path, @archive_file, opts[:archive])
             end
           end)
 
@@ -167,6 +167,7 @@ defmodule Rivet.Mix.Migration do
               end
           end
         end)
+
       {:error, err} ->
         IO.puts(:stderr, err)
         out

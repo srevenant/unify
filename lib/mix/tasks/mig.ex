@@ -41,38 +41,36 @@ defmodule Mix.Tasks.Rivet.Mig do
   defp new_migration(opts, name, label),
     do: Rivet.Mix.Migration.add_migration(name, label, opts)
 
-  defp list_migrations(_opts) do
-    # option_configs(opts)
-
-    case Rivet.Mix.Migration.migrations() do
-      {:ok, migs} ->
-        migs =
-          Enum.map(migs, fn mig ->
-            Map.merge(mig, %{
-              model: module_base(mig.model),
-              module: module_base(mig.module),
-              path: "lib/#{pathname(mig.module)}.exs"
-            })
-          end)
-
-        model_x = maxlen_in(migs, & &1.model)
-        module_x = maxlen_in(migs, & &1.module)
-
-        IO.puts(
-          "#{pad("PREFIX", 7, " ")} #{pad("VERSION", 14, " ")} #{pad("MODEL", model_x, " ")}  #{pad("MIGRATION", module_x, " ")} -> PATH"
-        )
-
-        Enum.each(migs, fn mig ->
-          indent = if mig[:base] == true, do: "** ", else: "   "
-          index = pad(mig.index, 18)
-          pre = slice(index, 0..3)
-          ver = slice(index, 4..-1)
-
-          IO.puts(
-            "#{indent}#{pre} #{ver} #{pad(mig.model, model_x, " ")}  #{pad(mig.module, module_x, " ")} -> #{mig.path}"
-          )
+  defp list_migrations(opts) do
+    with {:ok, cfg, opts} <- option_configs(opts),
+         {:ok, migs} <- Rivet.Mix.Migration.migrations(cfg, opts) do
+      migs =
+        Enum.map(migs, fn mig ->
+          Map.merge(mig, %{
+            model: module_base(mig.model),
+            module: module_base(mig.module),
+            path: "lib/#{pathname(mig.module)}.exs"
+          })
         end)
 
+      model_x = maxlen_in(migs, & &1.model)
+      module_x = maxlen_in(migs, & &1.module)
+
+      IO.puts(
+        "#{pad("PREFIX", 7, " ")} #{pad("VERSION", 14, " ")} #{pad("MODEL", model_x, " ")}  #{pad("MIGRATION", module_x, " ")} -> PATH"
+      )
+
+      Enum.each(migs, fn mig ->
+        indent = if mig[:base] == true, do: "** ", else: "   "
+        index = pad(mig.index, 18)
+        pre = slice(index, 0..3)
+        ver = slice(index, 4..-1)
+
+        IO.puts(
+          "#{indent}#{pre} #{ver} #{pad(mig.model, model_x, " ")}  #{pad(mig.module, module_x, " ")} -> #{mig.path}"
+        )
+      end)
+    else
       {:error, msg} ->
         IO.puts(:stderr, msg)
     end
