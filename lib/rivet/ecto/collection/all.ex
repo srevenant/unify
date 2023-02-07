@@ -9,7 +9,8 @@ defmodule Rivet.Ecto.Collection.All do
         |> @repo.all()
       end
 
-      insert query here
+      # TODO: insert query version of all! here (vs clauses version)
+      
       ##########################################################################
       @spec all(keyword(), list()) :: {:error, ecto_p_result} | {:ok, [@model.t()]}
       def all(clauses \\ [], args \\ []) do

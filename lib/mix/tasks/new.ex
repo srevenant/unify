@@ -186,7 +186,7 @@ defmodule Mix.Tasks.Rivet.New do
     cmd = Rivet.Mix.Common.task_cmd(__MODULE__)
 
     IO.puts(:stderr, """
-    Syntax: mix #{cmd} {path/to/model_folder (singular)} [options]
+    Syntax: mix #{cmd} model|mig|migration {path/to/model_folder (singular)} [options]
 
     Options:
     """)

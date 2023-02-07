@@ -129,7 +129,7 @@ defmodule Rivet.Loader.Tools do
   defp replace_with_lookup(state, module, data, [], next),
     do: next.(state, module, data)
 
-  defp replace_with_lookup(state, module, data, lookup) do
+  defp replace_with_lookup(state, module, data, lookup, next) do
     case module.one(lookup) do
       {:ok, obj} ->
         case module.update(obj, data) do
