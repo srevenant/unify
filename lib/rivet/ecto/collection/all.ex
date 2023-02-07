@@ -3,12 +3,13 @@ defmodule Rivet.Ecto.Collection.All do
     quote location: :keep, bind_quoted: [opts: opts] do
       ##########################################################################
       @spec all!(keyword(), list()) :: [@model.t()]
-      def all!(clauses \\ [], args \\ []) do
+      def all!(clauses \\ [], args \\ []) when is_list(clauses) do
         from(t in @model, where: ^clauses)
         |> Rivet.Ecto.Collection.enrich_query_args(args)
         |> @repo.all()
       end
 
+      insert query here
       ##########################################################################
       @spec all(keyword(), list()) :: {:error, ecto_p_result} | {:ok, [@model.t()]}
       def all(clauses \\ [], args \\ []) do

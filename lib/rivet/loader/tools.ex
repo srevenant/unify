@@ -124,7 +124,12 @@ defmodule Rivet.Loader.Tools do
   defp replace_with_lookup(state, module, data, nil),
     do: create_record(state, module, data)
 
-  defp replace_with_lookup(state, module, data, lookup, next \\ &create_record/3) do
+  defp replace_with_lookup(state, module, data, lookup, next \\ &create_record/3)
+
+  defp replace_with_lookup(state, module, data, [], next),
+    do: next.(state, module, data)
+
+  defp replace_with_lookup(state, module, data, lookup) do
     case module.one(lookup) do
       {:ok, obj} ->
         case module.update(obj, data) do
