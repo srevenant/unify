@@ -1,5 +1,6 @@
 defmodule Rivet.Test do
   use Rivet.Case, async: true
+  import ExUnit.CaptureIO
 
   def random_chars() do
     {:ok, code} = Rivet.Utils.Codes.generate(6, fn _ -> false end)
@@ -32,15 +33,17 @@ defmodule Rivet.Test do
 
   describe "Rivet New" do
     test "single path segment", dirs do
-      Mix.Tasks.Rivet.New.run([
-        "--lib-dir",
-        dirs.lib,
-        "--test-dir",
-        dirs.tst,
-        "--no-migration",
-        "model",
-        "single"
-      ])
+      capture_io(fn ->
+        Mix.Tasks.Rivet.New.run([
+          "--lib-dir",
+          dirs.lib,
+          "--test-dir",
+          dirs.tst,
+          "--no-migration",
+          "model",
+          "single"
+        ])
+      end)
 
       created = Path.join(dirs.lib, "rivet/single")
       assert {:ok, files} = File.ls(created)
@@ -52,15 +55,17 @@ defmodule Rivet.Test do
     end
 
     test "multiple path segments", dirs do
-      Mix.Tasks.Rivet.New.run([
-        "--lib-dir",
-        dirs.lib,
-        "--test-dir",
-        dirs.tst,
-        "--no-migration",
-        "model",
-        "multiple/segments"
-      ])
+      capture_io(fn ->
+        Mix.Tasks.Rivet.New.run([
+          "--lib-dir",
+          dirs.lib,
+          "--test-dir",
+          dirs.tst,
+          "--no-migration",
+          "model",
+          "multiple/segments"
+        ])
+      end)
 
       created = Path.join(dirs.lib, "rivet/multiple/segments")
       assert {:ok, files} = File.ls(created)
