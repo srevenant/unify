@@ -42,7 +42,7 @@ defmodule Mix.Tasks.Rivet.New do
     order: [:integer, :keep],
     # model: :boolean,
     db: :boolean,
-    ab_cd: :boolean,
+    migration: :boolean,
     loader: :boolean,
     seeds: :boolean,
     graphql: :boolean,
