@@ -98,6 +98,7 @@ defmodule Mix.Tasks.Rivet.New do
         c_app: app,
         c_base: base,
         c_model: model,
+        c_factory: table,
         c_table: "#{table}s",
         c_mod: "#{base}.#{model}"
       )
