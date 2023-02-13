@@ -4,7 +4,7 @@ defmodule Rivet.Ecto.Collection.Model do
       @required_fields Keyword.get(opts, :required, []) |> Enum.uniq()
       @update_allowed_fields Keyword.get(opts, :update, []) |> Enum.uniq()
       @create_allowed_fields (Keyword.get(opts, :create, [:id]) ++
-                                [@required_fields ++ @update_allowed_fields])
+                                @required_fields ++ @update_allowed_fields)
                              |> Enum.uniq()
       @foreign_keys Keyword.get(opts, :foreign_keys, []) |> Enum.uniq()
       @unique_constraints Keyword.get(opts, :unique_constraints, []) |> Enum.uniq()

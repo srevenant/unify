@@ -87,7 +87,7 @@ defmodule Mix.Tasks.Rivet.Commit do
     with {:ok, cfg, opts} <- option_configs(opts),
          {:ok, migs} <- Rivet.Mix.Migration.migrations(cfg, opts) do
       {:ok, cfg, opts,
-       Enum.map(migs, fn %{module: mod, version: ver, path: path} ->
+       Enum.map(migs, fn %{module: mod, index: ver, path: path} ->
          Code.require_file(path)
 
          if Code.ensure_loaded?(mod) and function_exported?(mod, :__migration__, 0) do

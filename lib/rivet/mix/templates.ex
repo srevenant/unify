@@ -10,15 +10,15 @@ defmodule Rivet.Mix.Templates do
     use TypedEctoSchema
     use Rivet.Ecto.Model
 
-    typed_schema "<%= @c_table %>s" do
+    typed_schema "<%= @c_table %>" do
       #belongs_to(:user, ..., type: :binary_id, foreign_key: :user_id)
       #field(:type, Enum)
       timestamps()
     end
 
     use Rivet.Ecto.Collection,
-      required: [:user],
-      update: [:user]
+      required: [:user_id],
+      update: [:user_id]
   end
   """)
 
@@ -62,8 +62,9 @@ defmodule Rivet.Mix.Templates do
     use Ecto.Migration
 
     def change do
-      create table(:<%= @c_table %>) do
-      #  add(:user_id, references(:users, on_delete: :delete_all, type: :uuid))
+      create table(:<%= @c_table %>, primary_key: false) do
+        add(:id, :uuid, primary_key: true)
+        # add(:user_id, references(:users, on_delete: :delete_all, type: :uuid))
         timestamps()
       end
 
@@ -77,7 +78,7 @@ defmodule Rivet.Mix.Templates do
 
   embed_template(:db, """
   defmodule <%= @c_mod %>.Db do
-    import Ecto.Query
+    use Rivet.Ecto.Collection.Context, model: <%= @c_mod %>
   end
   """)
 

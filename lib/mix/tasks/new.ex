@@ -86,12 +86,14 @@ defmodule Mix.Tasks.Rivet.New do
          {:ok, %{app: app, modpath: moddir, testpath: testdir, base: base}, opts},
          path_name
        ) do
-    {mod, dir} = Path.split(path_name) |> List.pop_at(-1)
-    table = pathname(mod)
+    alias = String.split(base, ".") |> List.last()
+    mod = Path.split(path_name) |> List.last()
 
     moddir = Path.join(moddir, path_name)
     testdir = Path.join(testdir, path_name)
     model = modulename(path_name)
+    table = snakecase("#{alias}_#{String.replace(model, "/", "_")}")
+
     # prefix our config opts with `c_` so they don't collide with command-line opts
     opts =
       Keyword.merge(opts,
@@ -141,7 +143,7 @@ defmodule Mix.Tasks.Rivet.New do
 
     if dopts.test do
       create_directory(testdir)
-      create_file("#{testdir}/#{table}_test.ex", Templates.test(opts))
+      create_file("#{testdir}/#{mod}_test.exs", Templates.test(opts))
     end
 
     # note: keep this last for readability of the final message
