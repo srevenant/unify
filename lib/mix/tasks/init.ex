@@ -16,7 +16,7 @@ defmodule Mix.Tasks.Rivet.Init do
 
     Create your first model with:
 
-       mix rivet model {name}
+       mix rivet.new model {name}
     """)
   end
 end
