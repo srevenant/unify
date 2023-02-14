@@ -42,7 +42,7 @@ defmodule Mix.Tasks.Rivet.New do
     order: [:integer, :keep],
     # model: :boolean,
     db: :boolean,
-    ab_cd: :boolean,
+    migration: :boolean,
     loader: :boolean,
     seeds: :boolean,
     graphql: :boolean,
@@ -87,11 +87,11 @@ defmodule Mix.Tasks.Rivet.New do
          path_name
        ) do
     {mod, dir} = Path.split(path_name) |> List.pop_at(-1)
-
     table = pathname(mod)
-    moddir = Path.join(Path.split(moddir) ++ dir ++ [table])
-    testdir = Path.join(Path.split(testdir) ++ dir ++ [table])
-    model = modulename(mod)
+
+    moddir = Path.join(moddir, path_name)
+    testdir = Path.join(testdir, path_name)
+    model = modulename(path_name)
     # prefix our config opts with `c_` so they don't collide with command-line opts
     opts =
       Keyword.merge(opts,
