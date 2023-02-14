@@ -17,8 +17,8 @@ defmodule Rivet.Mix.Templates do
     end
 
     use Rivet.Ecto.Collection,
-      required: [:user],
-      update: [:user]
+      required: [:user_id],
+      update: [:user_id]
   end
   """)
 
@@ -62,8 +62,9 @@ defmodule Rivet.Mix.Templates do
     use Ecto.Migration
 
     def change do
-      create table(:<%= @c_table %>) do
-      #  add(:user_id, references(:users, on_delete: :delete_all, type: :uuid))
+      create table(:<%= @c_table %>, primary_key: false) do
+        add(:id, :uuid, primary_key: true)
+        # add(:user_id, references(:users, on_delete: :delete_all, type: :uuid))
         timestamps()
       end
 
@@ -77,7 +78,7 @@ defmodule Rivet.Mix.Templates do
 
   embed_template(:db, """
   defmodule <%= @c_mod %>.Db do
-    import Ecto.Query
+    use Rivet.Ecto.Collection.Context, model: <%= @c_mod %>
   end
   """)
 
@@ -108,40 +109,40 @@ defmodule Rivet.Mix.Templates do
     <% end %>
     describe "factory" do
       test "factory creates a valid instance" do
-        assert %{} = dup_template = insert(:dup_template)
-        assert dup_template.id != nil
+        assert %{} = model = insert(:<%= @c_factory %>)
+        assert model.id != nil
       end
     end
 
     describe "build/1" do
       test "build when valid" do
-        params = params_with_assocs(:dup_template)
-        changeset = Db.DupTemplate.build(params)
+        params = params_with_assocs(:<%= @c_factory %>)
+        changeset = <%= @c_mod %>.build(params)
         assert changeset.valid?
       end
     end
 
     describe "get/1" do
       test "loads saved transactions as expected" do
-        c = insert(:dup_template)
-        assert %Db.DupTemplate{} = found = Db.DupTemplates.one!(id: c.id)
+        c = insert(:<%= @c_factory %>)
+        assert %<%= @c_mod %>{} = found = <%= @c_mod %>.one!(id: c.id)
         assert found.id == c.id
       end
     end
 
     describe "create/1" do
       test "inserts a valid record" do
-        attrs = params_with_assocs(:dup_template)
-        assert {:ok, dup_template} = Db.DupTemplates.create(attrs)
-        assert dup_template.id != nil
+        attrs = params_with_assocs(:<%= @c_factory %>)
+        assert {:ok, model} = <%= @c_mod %>.create(attrs)
+        assert model.id != nil
       end
     end
 
     describe "delete/1" do
       test "deletes record" do
-        dup_template = insert(:dup_template)
-        assert {:ok, deleted} = Db.DupTemplates.delete(dup_template)
-        assert deleted.id == dup_template.id
+        model = insert(:<%= @c_factory %>)
+        assert {:ok, deleted} = <%= @c_mod %>.delete(model)
+        assert deleted.id == model.id
       end
     end
   end
