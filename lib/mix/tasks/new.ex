@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Rivet.New do
 
   @switch_info [
     model: [default: true],
-    db: [default: true],
+    lib: [default: true],
     migration: [default: true],
     test: [default: true],
     loader: [default: false],
@@ -41,7 +41,7 @@ defmodule Mix.Tasks.Rivet.New do
     # app_base: [:string, :keep],
     order: [:integer, :keep],
     # model: :boolean,
-    db: :boolean,
+    lib: :boolean,
     migration: :boolean,
     loader: :boolean,
     seeds: :boolean,
@@ -54,7 +54,7 @@ defmodule Mix.Tasks.Rivet.New do
 
   @aliases [
     m: :model,
-    d: :db,
+    b: :lib,
     l: :loader,
     s: :seeds,
     g: :graphql,
@@ -113,8 +113,8 @@ defmodule Mix.Tasks.Rivet.New do
       create_file("#{moddir}/model.ex", Templates.model(opts))
     end
 
-    if dopts.db do
-      create_file("#{moddir}/db.ex", Templates.db(opts))
+    if dopts.lib do
+      create_file("#{moddir}/lib.ex", Templates.lib(opts))
     end
 
     if dopts.loader do

@@ -74,10 +74,10 @@ defmodule Rivet.Mix.Templates do
   """)
 
   ################################################################################
-  def db(opts), do: db_template(opts)
+  def lib(opts), do: lib_template(opts)
 
-  embed_template(:db, """
-  defmodule <%= @c_mod %>.Db do
+  embed_template(:lib, """
+  defmodule <%= @c_mod %>.Lib do
     use Rivet.Ecto.Collection.Context, model: <%= @c_mod %>
   end
   """)
@@ -99,7 +99,7 @@ defmodule Rivet.Mix.Templates do
     use <%= @c_base %>.Case, async: true
 
     doctest <%= @c_mod %>, import: true
-    <%= if @db do %>doctest <%= @c_mod %>.Db, import: true
+    <%= if @lib do %>doctest <%= @c_mod %>.Lib, import: true
     <% end %><%= if @loader do %>doctest <%= @c_mod %>.Loader, import: true
     <% end %><%= if @seeds do %>doctest <%= @c_mod %>.Seeds, import: true
     <% end %><%= if @graphql do %>doctest <%= @c_mod %>.Graphql, import: true

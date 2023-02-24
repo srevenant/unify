@@ -8,7 +8,7 @@ defmodule Rivet.Mix.Common do
 
   # @switch_info [
   #   model: [default: true],
-  #   db: [default: true],
+  #   lib: [default: true],
   #   migration: [default: true],
   #   test: [default: true],
   #   loader: [default: false],
@@ -35,7 +35,7 @@ defmodule Rivet.Mix.Common do
     app_base: [:string, :keep],
     #      order: [:integer, :keep],
     model: :boolean
-    #      db: :boolean,
+    #      lib: :boolean,
     #      migration: :boolean,
     #      loader: :boolean,
     #      seeds: :boolean,
@@ -48,7 +48,7 @@ defmodule Rivet.Mix.Common do
 
   # @aliases [
   #   m: :model,
-  #   d: :db,
+  #   b: :lib,
   #   l: :loader,
   #   s: :seeds,
   #   g: :graphql,
