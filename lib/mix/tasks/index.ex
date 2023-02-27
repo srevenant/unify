@@ -51,8 +51,8 @@ defmodule Mix.Tasks.Rivet do
     end
   end
 
-  defp get_full(cmd) do
-  end
+  #defp get_full(cmd) do
+  #end
 
   defp list_commands() do
     Application.ensure_all_started(:rivet)

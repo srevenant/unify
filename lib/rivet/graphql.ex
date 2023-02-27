@@ -2,6 +2,7 @@ defmodule Rivet.Graphql do
   @moduledoc """
   Helper functions for Absinthe resolvers.
   """
+  require Logger
 
   def current_hostname(%{context: %{hostname: h}}) when not is_nil(h), do: {:ok, h}
   def current_hostname(_), do: {:error, "No Host on session"}
@@ -49,7 +50,7 @@ defmodule Rivet.Graphql do
 
   def error_string(%ArgumentError{message: m}), do: m
 
-  def error_string(%Db.User{}), do: @std_errors[:authz]
+  def error_string(user) when is_struct(user), do: @std_errors[:authz]
   def error_string(reason) when is_atom(reason), do: @std_errors[reason]
   def error_string(reason) when is_binary(reason), do: reason
   def error_string(reason) when is_exception(reason), do: Exception.message(reason)
