@@ -21,10 +21,10 @@ defmodule Rivet.Ecto.Collection do
   @callback validate(Ecto.Changeset.t()) :: Ecto.Changeset.t()
   @callback build(params :: map()) :: Ecto.Changeset.t()
   @callback changeset(item :: map(), params :: map()) :: Ecto.Changeset.t()
-  @callback change_prep(item :: map(), changes :: map()) :: Ecto.Changeset.t()
-  @callback change_post(item :: map(), changes :: map()) :: Ecto.Changeset.t()
-  @callback create_prep(item :: map(), changes :: map()) :: Ecto.Changeset.t()
-  @callback create_post(item :: map(), changes :: map()) :: Ecto.Changeset.t()
+  @callback change_prep(item :: map(), changes :: map()) :: {:ok, map()}
+  @callback change_post(item :: map(), changes :: map()) :: map()
+  @callback create_prep(item :: map(), changes :: map()) :: {:ok, map()}
+  @callback create_post(item :: map(), changes :: map()) :: map()
 
   @optional_callbacks validate: 1,
                       build: 1,
