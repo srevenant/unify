@@ -66,6 +66,7 @@ defmodule Rivet.MixProject do
       {:typed_ecto_schema, "~> 0.3.0 or ~> 0.4.1"},
       {:postgrex, "~> 0.13", only: [:test]},
       {:ex_machina, "~> 2.7.0", only: :test},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
