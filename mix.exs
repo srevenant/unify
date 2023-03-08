@@ -58,7 +58,7 @@ defmodule Rivet.MixProject do
 
   defp deps do
     [
-      {:rivet_utils, "~> 1.0.0"},
+      {:rivet_utils, "~> 1.0.1"},
       {:ecto_sql, "~> 3.9"},
       {:ecto_enum, "~> 1.0"},
       {:transmogrify, "~> 1.0.1"},
