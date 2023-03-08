@@ -61,7 +61,7 @@ defmodule Rivet.MixProject do
       {:rivet_utils, "~> 1.0.1"},
       {:ecto_sql, "~> 3.9"},
       {:ecto_enum, "~> 1.0"},
-      {:transmogrify, "~> 1.0.1"},
+      {:transmogrify, "~> 1.1"},
       {:yaml_elixir, "~> 2.8.0"},
       {:typed_ecto_schema, "~> 0.3.0 or ~> 0.4.1"},
       {:postgrex, "~> 0.13", only: [:test]},
