@@ -8,10 +8,10 @@ defmodule Rivet.Seeds do
 
   # def configure() do
   #   {:ok, _} = Loader.Seeds.Tenant.upsert_seeds()
-  #   Db.Tenants.all!() |> configure
+  #   Lib.Tenants.all!() |> configure
   # end
   #
-  # def configure([%Db.Tenant{id: id} | tenants]) do
+  # def configure([%Lib.Tenant{id: id} | tenants]) do
   #   upsert_seeds(id)
   #   configure(tenants)
   # end
