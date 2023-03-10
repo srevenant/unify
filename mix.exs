@@ -4,7 +4,7 @@ defmodule Rivet.MixProject do
   def project do
     [
       app: :rivet,
-      version: "1.0.1",
+      version: "1.0.2",
       elixir: "~> 1.13",
       description: "Elixir data model framework library",
       source_url: "https://github.com/srevenant/rivet",
@@ -58,7 +58,7 @@ defmodule Rivet.MixProject do
 
   defp deps do
     [
-      {:rivet_utils, "~> 1.0.2"},
+      {:rivet_utils, "~> 1.0.3", git: "git@github.com:srevenant/rivet-utils", branch: "master"},
       {:ecto_sql, "~> 3.9"},
       {:ecto_enum, "~> 1.0"},
       {:transmogrify, "~> 1.1"},
