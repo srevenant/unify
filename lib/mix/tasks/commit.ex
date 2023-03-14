@@ -52,7 +52,6 @@ defmodule Mix.Tasks.Rivet.Commit do
     migrator = &Ecto.Migrator.run/4
     # brittle for now
     {:ok, cfg, _, migs} = get_migrations(args)
-    IO.inspect(cfg)
     repos = parse_repo(args)
     {opts, _} = OptionParser.parse!(args, strict: @switches, aliases: [])
 

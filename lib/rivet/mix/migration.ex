@@ -92,7 +92,6 @@ defmodule Rivet.Mix.Migration do
     }
   end
 
-  #
   # defp add_project_migration(%{module: module}) do
   #
   #   if not File.exists?(migrations) do
@@ -130,72 +129,83 @@ defmodule Rivet.Mix.Migration do
     if not File.exists?(@migrations_file) do
       {:error, "Migrations file is missing (#{@migrations_file})"}
     else
-      with {:ok, migs} <- load_config_file(@migrations_file) do
-        {migs, _} =
-          Enum.reduce(migs, {%{}, %{}}, fn mcfg, out ->
-            mcfg = Map.new(mcfg)
-
-            case mcfg[:include] do
-              nil ->
-                IO.puts(:stderr, "Invalid migration (no include key), #{inspect(mcfg)}")
-
-              mod ->
-                model = migration_model(mod)
-
-                path =
-                  Path.join(Path.split(moddir) ++ [Transmogrify.pathname(model), "migrations"])
-
-                mcfg = Map.merge(mcfg, %{model: model, opts: opts, cfg: cfg, path: path})
-
-                out
-                |> flatten_migrations(mcfg, path, @index_file, true)
-                |> flatten_migrations(mcfg, path, @archive_file, opts[:archive])
-            end
-          end)
-
+      with {:ok, migs} <- load_config_file(@migrations_file),
+           {:ok, migs} <- load_migrations([], migs) do
         {:ok, Map.keys(migs) |> Enum.sort() |> Enum.map(&migs[&1])}
       end
     end
   end
 
-  defp flatten_migrations(out, _, _, _, false), do: out
+  ##############################################################################
+  defp load_migrations(out, [mcfg | rest]) when is_list(mcfg) do
+    with {:ok, out} <- load_migration(Map.new(mcfg), out),
+         do: load_migrations(out, rest)
+  end
 
-  defp flatten_migrations(out, cfg, path, file, _) do
-    case load_config_file(Path.join([path, file])) do
-      {:ok, inc} ->
-        Enum.reduce(inc, out, fn mig, {idx, mods} = acc ->
-          case flatten_migration(cfg, Map.new(mig)) do
-            %{index: ver, module: mod} = mig ->
-              if Map.has_key?(idx, ver) or Map.has_key?(mods, mod) do
-                IO.puts(:stderr, "Ignoring duplicate migration: #{inspect(Map.to_list(mig))}")
-                acc
-              else
-                {Map.put(idx, ver, mig), Map.put(mods, mod, [])}
-              end
-          end
-        end)
+  defp load_migrations(out, []), do: {:ok, out}
 
-      {:error, err} ->
-        IO.puts(:stderr, err)
+  # # # # #
+  defp load_migration(%{include: modref} = mcfg, out) do
+    model = migration_model(modref)
+
+    path = Path.join(Path.split(moddir) ++ [Transmogrify.pathname(model), "migrations"])
+
+    mcfg = Map.merge(mcfg, %{model: model, opts: opts, cfg: cfg, path: path})
+
+    {:ok, out}
+    |> flatten_migrations(mcfg, path, @index_file, true)
+    |> flatten_migrations(mcfg, path, @archive_file, opts[:archive])
+  end
+
+  defp load_migration(%{external: i} = mcfg, out) do
+    :asdf
+  end
+
+  defp load_migration(mcfg, _),
+    do: {:error, "Invalid migration (no include or external key): #{inspect(mcfg)}"}
+
+  ##############################################################################
+  defp flatten_migrations(pass, _, _, _, false), do: pass
+
+  defp flatten_migrations({:ok, out}, cfg, path, file, _) do
+    with {:ok, includes} <- load_config_file(Path.join([path, file])),
+         do: flatten_include(out, includes)
+  end
+
+  # # # # #
+  defp flatten_include({idx, mods} = out, [mig | rest]) do
+    with {:ok, %{index: ver, module: mod} = mig} <- flatten_migration(cfg, Map.new(mig)) do
+      if Map.has_key?(idx, ver) or Map.has_key?(mods, mod) do
+        IO.puts(:stderr, "Ignoring duplicate migration: #{inspect(Map.to_list(mig))}")
         out
+      else
+        {Map.put(idx, ver, mig), Map.put(mods, mod, [])}
+      end
+      |> flatten_include(rest)
     end
   end
 
+  defp flatten_include(out, []), do: {:ok, out}
+
+  # # # # #
   defp flatten_migration(cfg, %{version: v, module: m} = mig) do
-    Map.merge(mig, %{
-      index: format_version(cfg.prefix, v),
-      prefix: cfg.prefix,
-      parent: cfg.include,
-      model: cfg.model,
-      module: module_extend(cfg.include, m),
-      path: "#{cfg.path}/#{pathname(m)}.exs"
-    })
+    with {:ok, index} <- format_index(cfg.prefix, v) do
+      {:ok,
+       Map.merge(mig, %{
+         index: index,
+         prefix: cfg.prefix,
+         parent: cfg.include,
+         model: cfg.model,
+         module: module_extend(cfg.include, m),
+         path: "#{cfg.path}/#{pathname(m)}.exs"
+       })}
+    end
   end
 
-  defp format_version(prefix, v) when prefix <= 9999 and v <= 99_999_999_999_999,
-    do: as_int!(pad("#{prefix}", 4, "0") <> pad("#{v}", 14, "0"))
+  defp format_index(prefix, v) when prefix <= 9999 and v <= 99_999_999_999_999,
+    do: {:ok, as_int!(pad("#{prefix}", 4, "0") <> pad("#{v}", 14, "0"))}
 
-  defp format_version(_, _), do: raise("Prefix or version out of bounds")
+  defp format_index(p, v), do: {:error, "Prefix '#{p}' or version '#{v}' out of bounds"}
 
   # def link_next_schema(schema_file, name, migdir, prefix, order) when prefix < 100 do
   #   prefix = String.pad_leading("#{prefix}", 2, "0")

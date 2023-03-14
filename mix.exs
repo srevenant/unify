@@ -47,18 +47,14 @@ defmodule Rivet.MixProject do
   defp elixirc_paths(_), do: ["lib"]
 
   defp aliases do
-    [
-      "ecto.setup": ["ecto.create", "ecto.migrate"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate", "test"],
-      # keystrokes of life
-      c: ["compile"]
-    ]
+    # keystrokes of life
+    [c: ["compile"]]
   end
 
   defp deps do
     [
-      {:rivet_utils, "~> 1.0.3", git: "https://github.com/srevenant/rivet-utils", branch: "master"},
+      {:rivet_utils, "~> 1.0.3",
+       git: "https://github.com/srevenant/rivet-utils", branch: "master"},
       {:ecto_sql, "~> 3.9"},
       {:ecto_enum, "~> 1.0"},
       {:transmogrify, "~> 1.1"},
