@@ -27,7 +27,7 @@ defmodule Rivet.Mix do
 
   @switches [
     lib_dir: [:string, :keep],
-    mod_dir: [:string, :keep],
+    models_dir: [:string, :keep],
     test_dir: [:string, :keep],
     app_base: [:string, :keep],
     #      order: [:integer, :keep],

@@ -68,7 +68,7 @@ defmodule Mix.Tasks.Rivet.New do
     case parse_options(args, @switches, @aliases) do
       {opts, args, []} ->
         Keyword.merge(@switch_info, opts)
-        |> option_configs(Mix.Project.config())
+        |> Rivet.Config.build(Mix.Project.config())
         |> new(args)
 
       {_, _, errs} ->
@@ -84,14 +84,14 @@ defmodule Mix.Tasks.Rivet.New do
   def new(_, _), do: syntax()
 
   defp configure_model(
-         {:ok, %{app: app, modpath: moddir, testpath: testdir, base: base}, opts},
+         {:ok, %{app: app, models_root: models_root, tests_root: tests_root, base: base}, opts},
          path_name
        ) do
     alias = String.split(base, ".") |> List.last()
     mod = Path.split(path_name) |> List.last()
 
-    moddir = Path.join(moddir, path_name)
-    testdir = Path.join(testdir, path_name)
+    modeldir = Path.join(models_root, path_name)
+    testdir = Path.join(tests_root, path_name)
     model = modulename(path_name)
     table = snakecase("#{alias}_#{String.replace(model, "/", "_")}")
 
@@ -108,38 +108,38 @@ defmodule Mix.Tasks.Rivet.New do
 
     dopts = Map.new(opts)
 
-    create_directory(moddir)
+    create_directory(modeldir)
 
     if dopts.model do
-      create_file("#{moddir}/model.ex", Templates.model(opts))
+      create_file("#{modeldir}/model.ex", Templates.model(opts))
     end
 
     if dopts.lib do
-      create_file("#{moddir}/lib.ex", Templates.lib(opts))
+      create_file("#{modeldir}/lib.ex", Templates.lib(opts))
     end
 
     if dopts.loader do
-      create_file("#{moddir}/loader.ex", Templates.empty(opts ++ [c_sub: "Loader"]))
+      create_file("#{modeldir}/loader.ex", Templates.empty(opts ++ [c_sub: "Loader"]))
     end
 
     if dopts.seeds do
-      create_file("#{moddir}/seeds.ex", Templates.empty(opts ++ [c_sub: "Seeds"]))
+      create_file("#{modeldir}/seeds.ex", Templates.empty(opts ++ [c_sub: "Seeds"]))
     end
 
     if dopts.graphql do
-      create_file("#{moddir}/graphql.ex", Templates.empty(opts ++ [c_sub: "Graphql"]))
+      create_file("#{modeldir}/graphql.ex", Templates.empty(opts ++ [c_sub: "Graphql"]))
     end
 
     if dopts.resolver do
-      create_file("#{moddir}/resolver.ex", Templates.empty(opts ++ [c_sub: "Resolver"]))
+      create_file("#{modeldir}/resolver.ex", Templates.empty(opts ++ [c_sub: "Resolver"]))
     end
 
     if dopts.rest do
-      create_file("#{moddir}/rest.ex", Templates.empty(opts ++ [c_sub: "Rest"]))
+      create_file("#{modeldir}/rest.ex", Templates.empty(opts ++ [c_sub: "Rest"]))
     end
 
     if dopts.cache do
-      create_file("#{moddir}/cache.ex", Templates.empty(opts ++ [c_sub: "Cache"]))
+      create_file("#{modeldir}/cache.ex", Templates.empty(opts ++ [c_sub: "Cache"]))
     end
 
     if dopts.test do
@@ -149,7 +149,7 @@ defmodule Mix.Tasks.Rivet.New do
 
     # note: keep this last for readability of the final message
     if dopts.migration do
-      migdir = Path.join(moddir, "migrations")
+      migdir = Path.join(modeldir, "migrations")
       create_directory(migdir)
       create_file(Path.join(migdir, @index_file), Templates.migrations(opts))
       create_file(Path.join(migdir, @archive_file), Templates.empty_list(opts))

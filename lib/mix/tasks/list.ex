@@ -32,8 +32,8 @@ defmodule Mix.Tasks.Rivet.List do
   end
 
   defp list_migrations(opts) do
-    with {:ok, cfg, opts} <- option_configs(opts, Mix.Project.config()),
-         {:ok, migs} <- Rivet.Migration.Load.migrations(cfg, opts) do
+    with {:ok, migs} <-
+           Rivet.Migration.Load.prepare_project_migrations(opts, Mix.Project.config()) do
       migs =
         Enum.map(migs, fn mig ->
           Map.merge(mig, %{

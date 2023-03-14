@@ -5,9 +5,12 @@ defmodule Rivet.Migration.Load do
   import Transmogrify
   use Rivet
 
-  def load_project_migrations(opts, config) do
-    with {:ok, cfg, opts} <- option_configs(opts, config),
-         {:ok, migs} <- migrations(cfg, opts) do
+  @doc """
+  External interface to get migrations ready for use by Ecto
+  """
+  def prepare_project_migrations(opts, project_config) do
+    with {:ok, config} <- Rivet.Config.build(opts, project_config),
+         {:ok, migs} <- load_project_migrations(config) do
       {:ok,
        Enum.map(migs, fn %{module: mod, index: ver, path: path} ->
          Code.require_file(path)
@@ -21,75 +24,86 @@ defmodule Rivet.Migration.Load do
     end
   end
 
-  def migrations(cfg, opts \\ []) do
+  ##############################################################################
+  defp load_project_migrations(config) do
     if not File.exists?(@migrations_file) do
       {:error, "Migrations file is missing (#{@migrations_file})"}
     else
       with {:ok, migs} <- load_data_file(@migrations_file),
-           {:ok, migs} <- load_migrations({%{}, %{}}, migs, %{cfg: cfg, opts: opts}) do
+           {:ok, migs} <-
+             load_project_migrations(%{idx: %{}, mods: %{}}, migs, config) do
         {:ok, Map.keys(migs) |> Enum.sort() |> Enum.map(&migs[&1])}
       end
     end
   end
 
-  ##############################################################################
-  defp load_migrations(out, [mcfg | rest], meta) when is_list(mcfg) do
-    with {:ok, out} <- load_migration(Map.new(mcfg), out, meta),
-         do: load_migrations(out, rest, meta)
+  defp load_project_migrations(state, [model_migration | rest], config)
+       when is_list(model_migration) do
+    with {:ok, state} <- load_project_migration(Map.new(model_migration), state, config),
+         do: load_project_migrations(state, rest, config)
   end
 
-  defp load_migrations(out, [], _), do: {:ok, out}
+  defp load_project_migrations(state, [], _), do: {:ok, state}
 
   # # # # #
-  defp load_migration(%{include: modref} = mcfg, out, %{cfg: %{modpath: moddir} = cfg, opts: opts}) do
-    model = migration_model(modref)
-
-    path = Path.join(Path.split(moddir) ++ [Transmogrify.pathname(model), "migrations"])
-
-    mcfg = Map.merge(mcfg, %{model: model, opts: opts, cfg: cfg, path: path})
-
-    {:ok, out}
-    |> flatten_migrations(mcfg, path, @index_file, true)
-    |> flatten_migrations(mcfg, path, @archive_file, opts[:archive])
+  defp load_project_migration(model_migration, state, %{opts: opts} = config) do
+    with {:ok, model_migration, path} <- prepare_model_config(model_migration, config) do
+      {:ok, state}
+      |> merge_model_migrations(model_migration, path, @index_file, true)
+      |> merge_model_migrations(model_migration, path, @archive_file, opts[:archive] == true)
+    end
   end
 
-  defp load_migration(%{external: _} = ext, _out, _cfg) do
+  defp load_project_migration(%{external: _} = ext, _state, _cfg) do
     extmix = module_extend(ext.external, "MixProject")
 
     if Code.ensure_loaded?(extmix) and function_exported?(extmix, :project, 0) do
-      load_project_migrations([], extmix.project())
+      with {:ok, config} <-
+             Rivet.Config.build(
+               [
+                 base: "../../deps/asdfasdfa"
+               ],
+               extmix.project()
+             ),
+           do: load_project_migrations(config)
     else
       {:error, "Unable to find project information at #{extmix}"}
     end
   end
 
-  defp load_migration(mcfg, _, _),
-    do: {:error, "Invalid migration (no include or external key): #{inspect(mcfg)}"}
+  defp load_project_migration(model_migration, _, _),
+    do: {:error, "Invalid migration (no include or external key): #{inspect(model_migration)}"}
 
-  ##############################################################################
-  defp flatten_migrations(pass, _, _, _, false), do: pass
-
-  defp flatten_migrations({:ok, out}, cfg, path, file, _) do
-    with {:ok, includes} <- load_data_file(Path.join([path, file])),
-         do: flatten_include(out, includes, cfg)
+  def prepare_model_config(%{include: modref} = model_migration, %{models_root: root} = cfg) do
+    model = migration_model(modref)
+    path = Path.join(Path.split(root) ++ [Transmogrify.pathname(model), "migrations"])
+    {:ok, Map.merge(model_migration, %{model: model, path: path}), path}
   end
 
-  defp flatten_migrations(pass, _, _, _, _), do: pass
+  ##############################################################################
+  def merge_model_migrations(pass, _, _, _, false), do: pass
+
+  def merge_model_migrations({:ok, state}, cfg, path, file, _) do
+    with {:ok, includes} <- load_data_file(Path.join([path, file])),
+         do: flatten_include(state, includes, cfg)
+  end
+
+  def merge_model_migrations(pass, _, _, _, _), do: pass
 
   # # # # #
-  defp flatten_include({idx, mods} = out, [mig | rest], cfg) do
+  defp flatten_include(state, [mig | rest], cfg) do
     with {:ok, %{index: ver, module: mod} = mig} <- flatten_migration(cfg, Map.new(mig)) do
-      if Map.has_key?(idx, ver) or Map.has_key?(mods, mod) do
+      if Map.has_key?(state.idx, ver) or Map.has_key?(state.mods, mod) do
         IO.puts(:stderr, "Ignoring duplicate migration: #{inspect(Map.to_list(mig))}")
-        out
+        state
       else
-        {Map.put(idx, ver, mig), Map.put(mods, mod, [])}
+        %{state | idx: Map.put(state.idx, ver, mig), mods: Map.put(state.mods, mod, [])}
       end
       |> flatten_include(rest, cfg)
     end
   end
 
-  defp flatten_include(out, [], _), do: {:ok, out}
+  defp flatten_include(state, [], _), do: {:ok, state}
 
   # # # # #
   defp flatten_migration(cfg, %{version: v, module: m} = mig) do
