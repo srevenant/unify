@@ -57,9 +57,7 @@ defmodule Rivet.Migration.Load do
     extmix = module_extend(ext.external, "MixProject")
 
     if Code.ensure_loaded?(extmix) and function_exported?(extmix, :project, 0) do
-      :ok
-      # {ver, mod}
-      # option_configextmix.project()
+      load_project_migrations([], extmix.project())
     else
       {:error, "Unable to find project information at #{extmix}"}
     end
@@ -79,7 +77,7 @@ defmodule Rivet.Migration.Load do
   defp flatten_migrations(pass, _, _, _, _), do: pass
 
   # # # # #
-  defp flatten_include({idx, mods} = out, [mig | rest], cfg) do
+  defp flatten_include(out, [mig | rest], cfg) do
     with {:ok, %{index: ver, module: mod} = mig} <- flatten_migration(cfg, Map.new(mig)) do
       if Map.has_key?(idx, ver) or Map.has_key?(mods, mod) do
         IO.puts(:stderr, "Ignoring duplicate migration: #{inspect(Map.to_list(mig))}")
