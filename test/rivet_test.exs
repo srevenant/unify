@@ -2,28 +2,16 @@ defmodule Rivet.Test do
   use Rivet.Case, async: true
   import ExUnit.CaptureIO
 
-  def random_chars() do
-    {:ok, code} = Rivet.Utils.Codes.generate(6, fn _ -> false end)
-    code
-  end
-
   def read_first_line(file) do
     File.open!(file, fn f -> IO.read(f, :line) end)
   end
 
   setup do
-    tmp = "tmp"
+    tmp = temp_dir()
+    on_exit(fn -> File.rm_rf!(tmp) end)
 
-    Path.join(tmp, "lib/rivet")
-    |> File.mkdir_p!()
-
-    Path.join(tmp, "test/rivet")
-    |> File.mkdir_p!()
-
-    on_exit(fn ->
-      File.rm_rf!(tmp)
-    end)
-
+    Path.join(tmp, "lib/rivet") |> File.mkdir_p!()
+    Path.join(tmp, "test/rivet") |> File.mkdir_p!()
     lib = Path.join(tmp, "lib")
     tst = Path.join(tmp, "test")
     %{base: tmp, lib: lib, tst: tst}

@@ -21,4 +21,9 @@ defmodule Rivet.Case do
 
     :ok
   end
+
+  def temp_dir() do
+    {:ok, random} = Rivet.Utils.Codes.generate(6, fn _ -> false end)
+    System.tmp_dir!() |> Path.join(random)
+  end
 end

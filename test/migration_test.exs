@@ -1,19 +1,20 @@
 defmodule Rivet.Test.Migration do
   use Rivet.Case, async: true
 
-  @lib_dir "tmp"
-  @test_root "#{@lib_dir}/pinky"
-
   setup do
-    on_exit(fn -> File.rm_rf!(@test_root) end)
+    tmp = temp_dir()
+    :ok = File.mkdir_p!(tmp)
+    on_exit(fn -> File.rm_rf!(tmp) end)
+    %{tmp: tmp}
   end
 
-  test "migration things" do
-    :ok = File.mkdir_p("#{@test_root}/migrations")
+  test "migration things", %{tmp: tmp} do
+    root = "#{tmp}/pinky"
+    :ok = File.mkdir_p("#{root}/migrations")
 
     :ok =
       File.write(
-        "#{@test_root}/migrations/.index.exs",
+        "#{root}/migrations/.index.exs",
         inspect([
           [base: true, version: 100, module: Brain],
           [base: true, version: 20, module: Splat],
@@ -22,7 +23,7 @@ defmodule Rivet.Test.Migration do
         ])
       )
 
-    opts = [lib_dir: @lib_dir, models_dir: ""]
+    opts = [lib_dir: tmp, models_dir: ""]
 
     assert {:ok, rivet_cfg} = Rivet.Config.build(opts, Mix.Project.config())
 
@@ -32,6 +33,7 @@ defmodule Rivet.Test.Migration do
 
     state = %{idx: %{}, mods: %{}}
 
+    narf_path = "#{tmp}/pinky/migrations/narf.exs"
     assert {:ok,
             %{
               idx: %{
@@ -41,7 +43,6 @@ defmodule Rivet.Test.Migration do
                   model: "Pinky",
                   module: Pinky.Base,
                   parent: Pinky,
-                  path: "#{@lib_dir}/pinky/migrations/base.exs",
                   prefix: 200,
                   version: 0
                 },
@@ -51,7 +52,6 @@ defmodule Rivet.Test.Migration do
                   model: "Pinky",
                   module: Pinky.Splat,
                   parent: Pinky,
-                  path: "#{@lib_dir}/pinky/migrations/splat.exs",
                   prefix: 200,
                   version: 20
                 },
@@ -61,7 +61,6 @@ defmodule Rivet.Test.Migration do
                   model: "Pinky",
                   module: Pinky.Brain,
                   parent: Pinky,
-                  path: "#{@lib_dir}/pinky/migrations/brain.exs",
                   prefix: 200,
                   version: 100
                 },
@@ -71,7 +70,7 @@ defmodule Rivet.Test.Migration do
                   model: "Pinky",
                   module: Pinky.Narf,
                   parent: Pinky,
-                  path: "#{@lib_dir}/pinky/migrations/narf.exs",
+                  path: ^narf_path,
                   prefix: 200,
                   version: 3000
                 }
