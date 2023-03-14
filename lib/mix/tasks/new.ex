@@ -78,13 +78,13 @@ defmodule Mix.Tasks.Rivet.New do
     end
   end
 
-  def new(opts, ["model", model_name]), do: configure_model(opts, model_name)
-  def new(opts, ["mig", model, label]), do: add_migration(model, label, opts)
-  def new(opts, ["migration", model, label]), do: add_migration(model, label, opts)
+  def new({:ok, cfg}, ["model", model_name]), do: configure_model(cfg, model_name)
+  def new({:ok, cfg}, ["mig", model, label]), do: add_migration(model, label, cfg)
+  def new({:ok, cfg}, ["migration", model, label]), do: add_migration(model, label, cfg)
   def new(_, _), do: syntax()
 
   defp configure_model(
-         {:ok, %{app: app, models_root: models_root, tests_root: tests_root, base: base}, opts},
+         %{app: app, models_root: models_root, tests_root: tests_root, base: base} = cfg,
          path_name
        ) do
     alias = String.split(base, ".") |> List.last()
@@ -97,7 +97,7 @@ defmodule Mix.Tasks.Rivet.New do
 
     # prefix our config opts with `c_` so they don't collide with command-line opts
     opts =
-      Keyword.merge(opts,
+      Keyword.merge(cfg.opts,
         c_app: app,
         c_base: base,
         c_model: model,

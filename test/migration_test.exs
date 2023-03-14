@@ -1,7 +1,7 @@
 defmodule Rivet.Test.Migration do
   use Rivet.Case, async: true
 
-  @lib_dir "test/temp"
+  @lib_dir "tmp"
   @test_root "#{@lib_dir}/pinky"
 
   setup do
@@ -41,7 +41,7 @@ defmodule Rivet.Test.Migration do
                   model: "Pinky",
                   module: Pinky.Base,
                   parent: Pinky,
-                  path: "test/temp/pinky/migrations/base.exs",
+                  path: "#{@lib_dir}/pinky/migrations/base.exs",
                   prefix: 200,
                   version: 0
                 },
@@ -51,7 +51,7 @@ defmodule Rivet.Test.Migration do
                   model: "Pinky",
                   module: Pinky.Splat,
                   parent: Pinky,
-                  path: "test/temp/pinky/migrations/splat.exs",
+                  path: "#{@lib_dir}/pinky/migrations/splat.exs",
                   prefix: 200,
                   version: 20
                 },
@@ -61,7 +61,7 @@ defmodule Rivet.Test.Migration do
                   model: "Pinky",
                   module: Pinky.Brain,
                   parent: Pinky,
-                  path: "test/temp/pinky/migrations/brain.exs",
+                  path: "#{@lib_dir}/pinky/migrations/brain.exs",
                   prefix: 200,
                   version: 100
                 },
@@ -71,7 +71,7 @@ defmodule Rivet.Test.Migration do
                   model: "Pinky",
                   module: Pinky.Narf,
                   parent: Pinky,
-                  path: "test/temp/pinky/migrations/narf.exs",
+                  path: "#{@lib_dir}/pinky/migrations/narf.exs",
                   prefix: 200,
                   version: 3000
                 }

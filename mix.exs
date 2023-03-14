@@ -53,17 +53,19 @@ defmodule Rivet.MixProject do
 
   defp deps do
     [
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:ecto_enum, "~> 1.0"},
+      {:ecto_sql, "~> 3.9"},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:ex_machina, "~> 2.7.0", only: :test},
+      {:excoveralls, "~> 0.14", only: :test},
+      {:mix_test_watch, "~> 0.8", only: [:test, :dev], runtime: false},
+      {:postgrex, "~> 0.13", only: [:test]},
       {:rivet_utils, "~> 1.0.3",
        git: "https://github.com/srevenant/rivet-utils", branch: "master"},
-      {:ecto_sql, "~> 3.9"},
-      {:ecto_enum, "~> 1.0"},
       {:transmogrify, "~> 1.1"},
-      {:yaml_elixir, "~> 2.8.0"},
       {:typed_ecto_schema, "~> 0.3.0 or ~> 0.4.1"},
-      {:postgrex, "~> 0.13", only: [:test]},
-      {:ex_machina, "~> 2.7.0", only: :test},
-      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+      {:yaml_elixir, "~> 2.8.0"}
     ]
   end
 
