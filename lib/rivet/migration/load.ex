@@ -5,17 +5,6 @@ defmodule Rivet.Migration.Load do
   import Transmogrify
   use Rivet
 
-  def migrations(cfg, opts \\ []) do
-    if not File.exists?(@migrations_file) do
-      {:error, "Migrations file is missing (#{@migrations_file})"}
-    else
-      with {:ok, migs} <- load_data_file(@migrations_file),
-           {:ok, migs} <- load_migrations([], migs, %{cfg: cfg, opts: opts}) do
-        {:ok, Map.keys(migs) |> Enum.sort() |> Enum.map(&migs[&1])}
-      end
-    end
-  end
-
   def load_project_migrations(opts, config) do
     with {:ok, cfg, opts} <- option_configs(opts, config),
          {:ok, migs} <- migrations(cfg, opts) do
@@ -29,6 +18,17 @@ defmodule Rivet.Migration.Load do
            raise Ecto.MigrationError, "Module #{mod} in #{path} does not define an Ecto.Migration"
          end
        end)}
+    end
+  end
+
+  def migrations(cfg, opts \\ []) do
+    if not File.exists?(@migrations_file) do
+      {:error, "Migrations file is missing (#{@migrations_file})"}
+    else
+      with {:ok, migs} <- load_data_file(@migrations_file),
+           {:ok, migs} <- load_migrations({%{}, %{}}, migs, %{cfg: cfg, opts: opts}) do
+        {:ok, Map.keys(migs) |> Enum.sort() |> Enum.map(&migs[&1])}
+      end
     end
   end
 
