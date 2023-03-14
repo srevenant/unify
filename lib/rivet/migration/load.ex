@@ -47,10 +47,10 @@ defmodule Rivet.Migration.Load do
 
   # # # # #
   defp load_project_migration(model_migration, state, %{opts: opts} = config) do
-    with {:ok, model_migration, path} <- prepare_model_config(model_migration, config) do
+    with {:ok, model_migration} <- prepare_model_config(model_migration, config) do
       {:ok, state}
-      |> merge_model_migrations(model_migration, path, @index_file, true)
-      |> merge_model_migrations(model_migration, path, @archive_file, opts[:archive] == true)
+      |> merge_model_migrations(model_migration, @index_file, true)
+      |> merge_model_migrations(model_migration, @archive_file, opts[:archive] == true)
     end
   end
 
@@ -74,21 +74,22 @@ defmodule Rivet.Migration.Load do
   defp load_project_migration(model_migration, _, _),
     do: {:error, "Invalid migration (no include or external key): #{inspect(model_migration)}"}
 
+  ##############################################################################
   def prepare_model_config(%{include: modref} = model_migration, %{models_root: root} = cfg) do
     model = migration_model(modref)
     path = Path.join(Path.split(root) ++ [Transmogrify.pathname(model), "migrations"])
-    {:ok, Map.merge(model_migration, %{model: model, path: path}), path}
+    {:ok, Map.merge(model_migration, %{model: model, path: path})}
   end
 
   ##############################################################################
-  def merge_model_migrations(pass, _, _, _, false), do: pass
+  def merge_model_migrations(pass, _, _, false), do: pass
 
-  def merge_model_migrations({:ok, state}, cfg, path, file, _) do
-    with {:ok, includes} <- load_data_file(Path.join([path, file])),
+  def merge_model_migrations({:ok, state}, cfg, file, _) do
+    with {:ok, includes} <- load_data_file(Path.join([cfg.path, file])),
          do: flatten_include(state, includes, cfg)
   end
 
-  def merge_model_migrations(pass, _, _, _, _), do: pass
+  def merge_model_migrations(pass, _, _, _), do: pass
 
   # # # # #
   defp flatten_include(state, [mig | rest], cfg) do

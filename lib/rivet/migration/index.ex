@@ -29,7 +29,7 @@ defmodule Rivet.Migration do
   def pad(s, w, fill), do: String.pad_leading("#{s}", w, fill)
 
   def migration_model(mod) do
-    case String.split("#{mod}", ".") |> Enum.reverse() |> IO.inspect do
+    case String.split("#{mod}", ".") |> Enum.reverse() do
       ["Migrations", model | _] -> model
       [model | _] -> model
     end
