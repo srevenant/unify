@@ -4,8 +4,9 @@ defmodule Mix.Tasks.Rivet.New do
   import Mix.Generator
   import Transmogrify
   require Logger
-  import Rivet.Mix.Common
-  import Rivet.Mix.Migration, only: [add_migration: 3]
+  import Rivet.Mix
+  import Rivet.Migration
+  import Rivet.Migration.Manage
   use Rivet
 
   @shortdoc "Create a new Rivet Model or Model Migration"
@@ -67,7 +68,7 @@ defmodule Mix.Tasks.Rivet.New do
     case parse_options(args, @switches, @aliases) do
       {opts, args, []} ->
         Keyword.merge(@switch_info, opts)
-        |> option_configs()
+        |> option_configs(Mix.Project.config())
         |> new(args)
 
       {_, _, errs} ->
@@ -159,7 +160,7 @@ defmodule Mix.Tasks.Rivet.New do
         create_file(@migrations_file, Templates.empty_list(opts))
       end
 
-      case Rivet.Mix.Migration.add_migration_include(@migrations_file, basemod) do
+      case Rivet.Migration.Manage.add_migration_include(@migrations_file, basemod) do
         {:exists, _prefix} ->
           IO.puts("""
 
@@ -186,7 +187,7 @@ defmodule Mix.Tasks.Rivet.New do
 
   ################################################################################
   def syntax(_opts \\ nil) do
-    cmd = Rivet.Mix.Common.task_cmd(__MODULE__)
+    cmd = Rivet.Mix.task_cmd(__MODULE__)
 
     IO.puts(:stderr, """
     Syntax: mix #{cmd} model|mig|migration {path/to/model_folder (singular)} [options]
