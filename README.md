@@ -9,3 +9,17 @@
 Library Contributors: Mark Erickson, Brandon Gillespie, Lyle Mantooth, Jake Wood
 
 Look in module docs lib/mix/tasks/index.ex for command syntax
+
+## TODO
+
+* running from within umbrella is hairy. Just run commands from within the sub-app, instead of top of umbrella, for now
+* configurable table prefixes in db schema
+* maturing command set (see mix rivet help)
+* tighter integration w/Ecto (see prior)
+* mix rivet migrate is silent, need to get it noisy like typical ecto.migrate
+
+## How to use?
+
+See rivet-ident for a project using the Rivets Framework.
+
+You can bring the rivet-ident into YOUR project as a dependency (see notes on that project for more details)
