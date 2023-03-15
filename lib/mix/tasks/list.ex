@@ -34,13 +34,14 @@ defmodule Mix.Tasks.Rivet.List do
   defp list_migrations(opts) do
     with {:ok, migs} <-
            Rivet.Migration.Load.prepare_project_migrations(opts, Mix.Project.config()) do
-       IO.inspect(migs)
-        Enum.map(migs, fn mig ->
-          Map.merge(mig, %{
-            model: module_base(mig.model),
-            module: module_base(mig.module)
-          })
-        end)
+      IO.inspect(migs)
+
+      Enum.map(migs, fn mig ->
+        Map.merge(mig, %{
+          model: module_base(mig.model),
+          module: module_base(mig.module)
+        })
+      end)
 
       model_x = maxlen_in(migs, & &1.model)
       module_x = maxlen_in(migs, & &1.module)

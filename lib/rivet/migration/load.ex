@@ -26,17 +26,19 @@ defmodule Rivet.Migration.Load do
   #         {:ok, rivet_migrations()} | rivet_error()
   def prepare_project_migrations(opts, project_config) do
     with {:ok, config} <- Rivet.Config.build(opts, project_config),
-         {:ok, state} <- load_migrations_from_config(config) do
-      migs = state_to_list(state)
-      {:ok,
-       Enum.map(migs, fn %{module: mod, index: ver, path: path} ->
-         if module_loaded?(mod, path) and function_exported?(mod, :__migration__, 0) do
-           {ver, mod}
-         else
-           raise Ecto.MigrationError, "Module #{mod} in #{path} does not define an Ecto.Migration"
-         end
-       end)}
-    end
+         {:ok, %{idx: idx}} <- load_migrations_from_config(config),
+         do: {:ok, Map.keys(idx) |> Enum.sort() |> Enum.map(&idx[&1])}
+  end
+
+  def to_ecto_migrations(migs) do
+    {:ok,
+     Enum.map(migs, fn %{module: mod, index: ver, path: path} ->
+       if module_loaded?(mod, path) and function_exported?(mod, :__migration__, 0) do
+         {ver, mod}
+       else
+         raise Ecto.MigrationError, "Module #{mod} in #{path} does not define an Ecto.Migration"
+       end
+     end)}
   end
 
   ##############################################################################
@@ -51,8 +53,6 @@ defmodule Rivet.Migration.Load do
            do: load_project_migrations(@initial_state, mig_data, rivet_config)
     end
   end
-
-  defp state_to_list(%{idx: idx}), do: Map.keys(idx) |> Enum.sort() |> Enum.map(&idx[&1])
 
   # @spec load_project_migrations(
   #         rivet_migration_state(),
