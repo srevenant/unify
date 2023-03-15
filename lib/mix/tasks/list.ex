@@ -44,7 +44,7 @@ defmodule Mix.Tasks.Rivet.List do
       end)
 
       model_x = maxlen_in(migs, & &1.model)
-      module_x = maxlen_in(migs, & &1.module)
+      module_x = maxlen_in(migs, & "#{&1.module}")
 
       IO.puts(
         "#{pad("PREFIX", 7, " ")} #{pad("VERSION", 14, " ")} #{pad("MODEL", model_x, " ")}  #{pad("MIGRATION", module_x, " ")} -> PATH"
