@@ -1,9 +1,7 @@
 defmodule Mix.Tasks.Rivet.Commit do
   use Mix.Task
   import Mix.Ecto
-  import Rivet.Mix.Common
 
-  # "Manage Rivet migrations"
   @shortdoc "Commit pending Rivet Model Migrations"
 
   @moduledoc @shortdoc
@@ -47,55 +45,41 @@ defmodule Mix.Tasks.Rivet.Commit do
   """
 
   @impl true
-  # a clone of https://github.com/elixir-ecto/ecto_sql/blob/v3.9.2/lib/mix/tasks/ecto.migrate.ex#L111
+  # derived from https://github.com/elixir-ecto/ecto_sql/blob/v3.9.2/lib/mix/tasks/ecto.migrate.ex#L111
   def run(args) do
     migrator = &Ecto.Migrator.run/4
-    # brittle for now
-    {:ok, cfg, _, migs} = get_migrations(args)
-    IO.inspect(cfg)
-    repos = parse_repo(args)
-    {opts, _} = OptionParser.parse!(args, strict: @switches, aliases: [])
 
-    opts = Keyword.merge(@defaults, opts)
+    case Rivet.Migration.Load.prepare_project_migrations(args, Mix.Project.config()) do
+      {:ok, migs} ->
+        repos = parse_repo(args)
+        {opts, _} = OptionParser.parse!(args, strict: @switches, aliases: [])
 
-    {:ok, _} = Application.ensure_all_started(:ecto_sql)
+        opts = Keyword.merge(@defaults, opts)
 
-    for repo <- repos do
-      ensure_repo(repo, args)
-      pool = repo.config[:pool]
+        {:ok, _} = Application.ensure_all_started(:ecto_sql)
 
-      fun =
-        if Code.ensure_loaded?(pool) and function_exported?(pool, :unboxed_run, 2) do
-          &pool.unboxed_run(&1, fn -> migrator.(&1, migs, :up, opts) end)
-        else
-          &migrator.(&1, migs, :up, opts)
+        for repo <- repos do
+          ensure_repo(repo, args)
+          pool = repo.config[:pool]
+
+          fun =
+            if Code.ensure_loaded?(pool) and function_exported?(pool, :unboxed_run, 2) do
+              &pool.unboxed_run(&1, fn -> migrator.(&1, migs, :up, opts) end)
+            else
+              &migrator.(&1, migs, :up, opts)
+            end
+
+          case Ecto.Migrator.with_repo(repo, fun, [mode: :temporary] ++ opts) do
+            {:ok, _migrated, _apps} ->
+              :ok
+
+            {:error, error} ->
+              Mix.raise("Could not start repo #{inspect(repo)}, error: #{inspect(error)}")
+          end
         end
 
-      case Ecto.Migrator.with_repo(repo, fun, [mode: :temporary] ++ opts) do
-        {:ok, _migrated, _apps} ->
-          :ok
-
-        {:error, error} ->
-          Mix.raise("Could not start repo #{inspect(repo)}, error: #{inspect(error)}")
-      end
-    end
-
-    :ok
-  end
-
-  defp get_migrations(opts) do
-    with {:ok, cfg, opts} <- option_configs(opts),
-         {:ok, migs} <- Rivet.Mix.Migration.migrations(cfg, opts) do
-      {:ok, cfg, opts,
-       Enum.map(migs, fn %{module: mod, index: ver, path: path} ->
-         Code.require_file(path)
-
-         if Code.ensure_loaded?(mod) and function_exported?(mod, :__migration__, 0) do
-           {ver, mod}
-         else
-           raise Ecto.MigrationError, "Module #{mod} in #{path} does not define an Ecto.Migration"
-         end
-       end)}
+      {:error, msg} ->
+        Mix.raise(msg)
     end
   end
 end

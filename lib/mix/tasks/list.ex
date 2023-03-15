@@ -1,6 +1,7 @@
 defmodule Mix.Tasks.Rivet.List do
   use Mix.Task
-  import Rivet.Mix.Common
+  import Rivet.Mix
+  import Rivet.Migration
   import String, only: [slice: 2]
   require Logger
 
@@ -31,8 +32,8 @@ defmodule Mix.Tasks.Rivet.List do
   end
 
   defp list_migrations(opts) do
-    with {:ok, cfg, opts} <- option_configs(opts),
-         {:ok, migs} <- Rivet.Mix.Migration.migrations(cfg, opts) do
+    with {:ok, migs} <-
+           Rivet.Migration.Load.prepare_project_migrations(opts, Mix.Project.config()) do
       migs =
         Enum.map(migs, fn mig ->
           Map.merge(mig, %{
@@ -66,7 +67,7 @@ defmodule Mix.Tasks.Rivet.List do
 
   ################################################################################
   def syntax(err \\ false) do
-    cmd = Rivet.Mix.Common.task_cmd(__MODULE__)
+    cmd = Rivet.Mix.task_cmd(__MODULE__)
 
     IO.puts(:stderr, """
     Availble Tasks:
