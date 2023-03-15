@@ -47,10 +47,11 @@ defmodule Rivet.Migration.Load do
       {:error, "Migrations file is missing (#{migfile})"}
     else
       with {:ok, mig_data} <- load_data_file(migfile),
-           {:ok, %{idx: idx}} <- load_project_migrations(@initial_state, mig_data, rivet_config),
-           do: {:ok, Map.keys(idx) |> Enum.sort() |> Enum.map(&idx[&1])}
+           do: load_project_migrations(@initial_state, mig_data, rivet_config)
     end
   end
+
+  defp state_to_list(%{idx: idx}), do: {:ok, Map.keys(idx) |> Enum.sort() |> Enum.map(&idx[&1])}
 
   # @spec load_project_migrations(
   #         rivet_migration_state(),

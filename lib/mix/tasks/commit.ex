@@ -50,7 +50,8 @@ defmodule Mix.Tasks.Rivet.Commit do
     migrator = &Ecto.Migrator.run/4
 
     case Rivet.Migration.Load.prepare_project_migrations(args, Mix.Project.config()) do
-      {:ok, migs} ->
+      {:ok, state} ->
+        migs = Rivet.Migration.Load.state_to_list(state)
         repos = parse_repo(args)
         {opts, _} = OptionParser.parse!(args, strict: @switches, aliases: [])
 
