@@ -44,14 +44,14 @@ defmodule Mix.Tasks.Rivet.List do
       end)
 
       model_x = maxlen_in(migs, & &1.model)
-      module_x = maxlen_in(migs, & "#{&1.module}")
+      module_x = maxlen_in(migs, & Atom.to_string(&1.module))
 
       IO.puts(
         "#{pad("PREFIX", 7, " ")} #{pad("VERSION", 14, " ")} #{pad("MODEL", model_x, " ")}  #{pad("MIGRATION", module_x, " ")} -> PATH"
       )
 
       Enum.each(migs, fn mig ->
-        indent = if mig[:base] == true, do: "** ", else: "   "
+        indent = if mig.base == true, do: "** ", else: "   "
         index = pad(mig.index, 18)
         pre = slice(index, 0..3)
         ver = slice(index, 4..-1)
