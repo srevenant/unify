@@ -1,28 +1,32 @@
 defmodule Mix.Tasks.Rivet do
   use Mix.Task
 
-  @shortdoc "Prints Rivet help information"
+  @shortdoc "Rivet Framework. For full syntax try: mix rivet help"
 
   @moduledoc """
   Prints Rivet tasks and their information.
 
-      $ mix rivet help|{cmd}
+      Syntax: mix rivet help|{action}
 
-  x   rivet init
-  x   rivet new model name
-  x   rivet new migration project name
+  DONE:
+      rivet init
+      rivet n?ew model name
+      rivet n?ew migration project name
+      rivet l?ist|ls migration
+      rivet m?igrate
+      rivet help
+
+  TODO:
       rivet list model
-  x   rivet list migration
       rivet import
       rivet pending
-  .   rivet commit
       rivet rollback
   """
   @aliases %{
     "n" => "new",
     "ls" => "list",
     "l" => "list",
-    "c" => "commit"
+    "m" => "migrate"
   }
 
   @impl true
@@ -58,7 +62,7 @@ defmodule Mix.Tasks.Rivet do
     Application.ensure_all_started(:rivet)
     Mix.shell().info("Rivet v#{Application.spec(:rivet, :vsn)}")
     Mix.shell().info("A toolkit for managing models in Elixir, working with Ecto.")
-    Mix.shell().info("\nAvailable tasks:\n")
-    Mix.Tasks.Help.run(["--search", "rivet."])
+    Mix.shell().info(@moduledoc)
+    # Mix.Tasks.Help.run(["--search", "rivet."])
   end
 end

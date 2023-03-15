@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Rivet.List do
   require Logger
 
   # "Manage Rivet migrations"
-  @shortdoc "list|ls|new|pending|commit|rollback [...args]"
+  @shortdoc "List migrations/models. For full syntax try: mix rivet help"
 
   @impl true
   def run(["help"]), do: syntax()

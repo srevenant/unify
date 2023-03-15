@@ -1,8 +1,8 @@
-defmodule Mix.Tasks.Rivet.Commit do
+defmodule Mix.Tasks.Rivet.Migrate do
   use Mix.Task
   import Mix.Ecto
 
-  @shortdoc "Commit pending Rivet Model Migrations"
+  @shortdoc "Commit Rivet Migrations. For full syntax try: mix rivet help"
 
   @moduledoc @shortdoc
 

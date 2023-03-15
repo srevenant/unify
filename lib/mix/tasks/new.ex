@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Rivet.New do
   import Rivet.Migration.Manage
   use Rivet
 
-  @shortdoc "Create a new Rivet Model or Model Migration"
+  @shortdoc "Create a new Rivet Model or Model Migration. For full syntax try: mix rivet help"
 
   @moduledoc @shortdoc
 

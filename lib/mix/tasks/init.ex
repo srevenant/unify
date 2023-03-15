@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Rivet.Init do
   alias Rivet.Mix.Templates
   import Mix.Generator
 
-  @shortdoc "Initialize a project for Rivets"
+  @shortdoc "Initialize a Rivets project. For full syntax try: mix rivet help"
 
   @moduledoc @shortdoc
 

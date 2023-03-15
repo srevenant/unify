@@ -8,11 +8,4 @@
 
 Library Contributors: Mark Erickson, Brandon Gillespie, Lyle Mantooth, Jake Wood
 
-# TODO:
-
-* Add factory generation
-* mix mig:
-  - commit 
-  - import
-  - pending
-  - rollback
+Look in module docs lib/mix/tasks/index.ex for command syntax

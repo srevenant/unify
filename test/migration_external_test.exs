@@ -49,9 +49,8 @@ defmodule Rivet.Test.MigrationExternal do
       )
 
     on_exit(fn ->
-      :ok
-      # File.rm_rf!(tmp)
-      # File.rm_rf!("deps/rivet_test_lib")
+      File.rm_rf!(tmp)
+      File.rm_rf!("deps/rivet_test_lib")
     end)
 
     opts = [base_dir: tmp, lib_dir: ".", models_dir: ""]
