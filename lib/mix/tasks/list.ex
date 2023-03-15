@@ -34,9 +34,7 @@ defmodule Mix.Tasks.Rivet.List do
   defp list_migrations(opts) do
     with {:ok, migs} <-
            Rivet.Migration.Load.prepare_project_migrations(opts, Mix.Project.config()) do
-      IO.inspect(migs)
-
-      Enum.map(migs, fn mig ->
+      migs = Enum.map(migs, fn mig ->
         Map.merge(mig, %{
           model: module_base(mig.model),
           module: module_base(mig.module)
@@ -44,7 +42,7 @@ defmodule Mix.Tasks.Rivet.List do
       end)
 
       model_x = maxlen_in(migs, & &1.model)
-      module_x = maxlen_in(migs, & Atom.to_string(&1.module))
+      module_x = maxlen_in(migs, & &1.model)
 
       IO.puts(
         "#{pad("PREFIX", 7, " ")} #{pad("VERSION", 14, " ")} #{pad("MODEL", model_x, " ")}  #{pad("MIGRATION", module_x, " ")} -> PATH"
