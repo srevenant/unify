@@ -57,10 +57,12 @@ defmodule Rivet.Test.MigrationExternal do
     opts = [base_dir: tmp, lib_dir: ".", models_dir: ""]
     cfg = Mix.Project.config()
 
+    assert {:ok, migs} = Rivet.Migration.Load.prepare_project_migrations(opts, cfg)
+
     assert {:ok,
             [
               {30_000_000_000_000_000, RivetTestLib.Yoink.Migrations.Base},
               {40_000_000_000_000_000, Pinky.Base}
-            ]} = Rivet.Migration.Load.prepare_project_migrations(opts, cfg)
+            ]} = Rivet.Migration.Load.to_ecto_migrations(migs)
   end
 end

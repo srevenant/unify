@@ -51,31 +51,32 @@ defmodule Mix.Tasks.Rivet.Commit do
 
     case Rivet.Migration.Load.prepare_project_migrations(args, Mix.Project.config()) do
       {:ok, rivet_migs} ->
-        migs = Rivet.Migration.Load.to_ecto_migrations(rivet_migs)
-        repos = parse_repo(args)
-        {opts, _} = OptionParser.parse!(args, strict: @switches, aliases: [])
+        with {:ok, migs} <- Rivet.Migration.Load.to_ecto_migrations(rivet_migs) do
+          repos = parse_repo(args)
+          {opts, _} = OptionParser.parse!(args, strict: @switches, aliases: [])
 
-        opts = Keyword.merge(@defaults, opts)
+          opts = Keyword.merge(@defaults, opts)
 
-        {:ok, _} = Application.ensure_all_started(:ecto_sql)
+          {:ok, _} = Application.ensure_all_started(:ecto_sql)
 
-        for repo <- repos do
-          ensure_repo(repo, args)
-          pool = repo.config[:pool]
+          for repo <- repos do
+            ensure_repo(repo, args)
+            pool = repo.config[:pool]
 
-          fun =
-            if Code.ensure_loaded?(pool) and function_exported?(pool, :unboxed_run, 2) do
-              &pool.unboxed_run(&1, fn -> migrator.(&1, migs, :up, opts) end)
-            else
-              &migrator.(&1, migs, :up, opts)
+            fun =
+              if Code.ensure_loaded?(pool) and function_exported?(pool, :unboxed_run, 2) do
+                &pool.unboxed_run(&1, fn -> migrator.(&1, migs, :up, opts) end)
+              else
+                &migrator.(&1, migs, :up, opts)
+              end
+
+            case Ecto.Migrator.with_repo(repo, fun, [mode: :temporary] ++ opts) do
+              {:ok, _migrated, _apps} ->
+                :ok
+
+              {:error, error} ->
+                Mix.raise("Could not start repo #{inspect(repo)}, error: #{inspect(error)}")
             end
-
-          case Ecto.Migrator.with_repo(repo, fun, [mode: :temporary] ++ opts) do
-            {:ok, _migrated, _apps} ->
-              :ok
-
-            {:error, error} ->
-              Mix.raise("Could not start repo #{inspect(repo)}, error: #{inspect(error)}")
           end
         end
 
