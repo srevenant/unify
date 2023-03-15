@@ -1,6 +1,7 @@
 defmodule Rivet.Config do
   import Transmogrify
   require Logger
+  use Rivet
 
   @moduledoc ~S"""
   Optional configurations can be specified as opts, or in the project spec
@@ -22,8 +23,10 @@ defmodule Rivet.Config do
                          "#{test_dir}/#{app_dir}/#{mod_dir}"
     test_path:     - relative path to model test folder
                          "#{tests_root}/#{model_base_name}"
+    base_path:     - base folder for project
 
   """
+  # @spec build(Keyword.t(), Keyword.t()) :: {:ok, rivet_config()} | rivet_error()
   def build(opts, config) do
     case config[:app] do
       nil ->
@@ -32,19 +35,19 @@ defmodule Rivet.Config do
       app ->
         rivet_conf = config[:rivet] || []
         basedir = getdir(:base_dir, opts, rivet_conf, ".")
-        libdir = getdir(:lib_dir, opts, rivet_conf, "")
+        libdir = getdir(:lib_dir, opts, rivet_conf, "lib")
         testdir = getdir(:test_dir, opts, rivet_conf, "test")
         modelsdir = getdir(:models_dir, opts, rivet_conf, "#{app}")
 
         with {:ok, paths} <- get_paths(basedir, modelsdir, libdir, testdir) do
           {:ok,
            %{
+             base_path: Path.join(basedir),
              app: app,
              base: modulename(getconf(:app_base, opts, rivet_conf, "#{app}")),
              opts: opts
            }
-           |> Map.merge(paths)
-           |> Map.merge(Map.new(rivet_conf))}
+           |> Map.merge(paths)}
         end
     end
   end

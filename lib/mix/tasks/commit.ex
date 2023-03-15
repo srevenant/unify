@@ -81,7 +81,5 @@ defmodule Mix.Tasks.Rivet.Commit do
       {:error, msg} ->
         Mix.raise(msg)
     end
-
-    :ok
   end
 end

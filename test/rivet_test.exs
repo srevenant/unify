@@ -1,5 +1,5 @@
 defmodule Rivet.Test do
-  use Rivet.Case, async: true
+  use Rivet.Case
   import ExUnit.CaptureIO
 
   def read_first_line(file) do

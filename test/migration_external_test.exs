@@ -1,32 +1,66 @@
 defmodule Rivet.Test.MigrationExternal do
-  use Rivet.Case, async: true
+  use Rivet.Case
 
   test "migration external" do
-    [_|_] = File.cp_r!("priv/rivet_test_lib", "deps/rivet_test_lib")
+    [_ | _] = File.cp_r!("priv/rivet_test_lib", "deps/rivet_test_lib")
     tmp = temp_dir()
-    :ok = File.mkdir_p!(tmp)
+    root = "#{tmp}/pinky"
+    :ok = File.mkdir_p("#{root}/migrations")
+
+    :ok =
+      File.write(
+        "#{root}/migrations/.index.exs",
+        inspect([
+          [base: true, version: 0, module: Base]
+        ])
+      )
+
+    :ok =
+      File.write(
+        "#{root}/migrations/base.exs",
+        """
+        defmodule Pinky.Base do
+          use Ecto.Migration
+
+          def change do
+            create table(:base, primary_key: false) do
+              add(:id, :uuid, primary_key: true)
+            end
+          end
+        end
+        """
+      )
+
     :ok =
       File.write(
         "#{tmp}/.migrations.exs",
         inspect([
-            external: RivetTestLib,
+          [
+            include: Pinky,
+            prefix: 400
+          ],
+          [
+            external: "deps/rivet_test_lib",
             migrations: [
               [include: RivetTestLib.Yoink.Migrations, prefix: 300]
             ]
+          ]
         ])
       )
 
     on_exit(fn ->
-      File.rm_rf!(tmp)
-      File.rm_rf!("deps/rivet_test_lib")
+      :ok
+      # File.rm_rf!(tmp)
+      # File.rm_rf!("deps/rivet_test_lib")
     end)
 
-    opts = [lib_dir: tmp, models_dir: ""]
-    assert {:ok, rivet_cfg} = Rivet.Config.build(opts, Mix.Project.config())
+    opts = [base_dir: tmp, lib_dir: ".", models_dir: ""]
+    cfg = Mix.Project.config()
+
     assert {:ok,
-            %{
-              idx: :red
-            }} =
-              Rivet.Migration.Load.prepare_project_migrations([], rivet_cfg)
+            [
+              {30_000_000_000_000_000, RivetTestLib.Yoink.Migrations.Base},
+              {40_000_000_000_000_000, Pinky.Base}
+            ]} = Rivet.Migration.Load.prepare_project_migrations(opts, cfg)
   end
 end

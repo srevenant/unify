@@ -20,6 +20,7 @@ defmodule Rivet.MixProject do
       ],
       dialyzer: [
         ignore_warnings: ".dialyzer_ignore.exs",
+        plt_add_apps: [:mix],
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
       ],
       elixirc_paths: elixirc_paths(Mix.env()),
