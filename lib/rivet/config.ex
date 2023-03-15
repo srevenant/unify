@@ -24,6 +24,7 @@ defmodule Rivet.Config do
     test_path:     - relative path to model test folder
                          "#{tests_root}/#{model_base_name}"
     base_path:     - base folder for project
+    deps_path:     - deps path
 
   """
   # @spec build(Keyword.t(), Keyword.t()) :: {:ok, rivet_config()} | rivet_error()
@@ -38,11 +39,13 @@ defmodule Rivet.Config do
         libdir = getdir(:lib_dir, opts, rivet_conf, "lib")
         testdir = getdir(:test_dir, opts, rivet_conf, "test")
         modelsdir = getdir(:models_dir, opts, rivet_conf, "#{app}")
+        depsdir = getdir(:deps_path, opts, rivet_conf, "deps")
 
         with {:ok, paths} <- get_paths(basedir, modelsdir, libdir, testdir) do
           {:ok,
            %{
              base_path: Path.join(basedir),
+             deps_path: Path.join(depsdir),
              app: app,
              base: modulename(getconf(:app_base, opts, rivet_conf, "#{app}")),
              opts: opts

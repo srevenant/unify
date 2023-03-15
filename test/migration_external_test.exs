@@ -40,7 +40,7 @@ defmodule Rivet.Test.MigrationExternal do
             prefix: 400
           ],
           [
-            external: "deps/rivet_test_lib",
+            external: RivetTestLib,
             migrations: [
               [include: RivetTestLib.Yoink.Migrations, prefix: 300]
             ]

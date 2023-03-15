@@ -7,6 +7,18 @@ defmodule Rivet.Migration.Load do
 
   @initial_state %{idx: %{}, mods: %{}}
 
+  defp module_loaded?(mod, file) do
+    if Code.ensure_loaded?(mod) do
+      true
+    else
+      Code.require_file(file)
+      true
+    end
+  rescue
+    _ ->
+      false
+  end
+
   @doc """
   External interface to get migrations ready for use by Ecto
   """
@@ -17,9 +29,7 @@ defmodule Rivet.Migration.Load do
          {:ok, migs} <- load_migrations_from_config(config) do
       {:ok,
        Enum.map(migs, fn %{module: mod, index: ver, path: path} ->
-         Code.require_file(path)
-
-         if Code.ensure_loaded?(mod) and function_exported?(mod, :__migration__, 0) do
+         if module_loaded?(mod, path) and function_exported?(mod, :__migration__, 0) do
            {ver, mod}
          else
            raise Ecto.MigrationError, "Module #{mod} in #{path} does not define an Ecto.Migration"
@@ -78,15 +88,13 @@ defmodule Rivet.Migration.Load do
     end
   end
 
-  defp load_project_migration(%{external: _} = model_migration, state, _cfg) do
-    [{extmix, _}] = Code.require_file("mix.exs", model_migration.external)
+  defp load_project_migration(%{external: extmod} = model_migration, state, cfg) do
+    extmix = module_extend(extmod, "MixProject")
+    path = Path.join(cfg[:deps_path], Transmogrify.Pathname.convert(extmod))
 
-    if Code.ensure_loaded?(extmix) and function_exported?(extmix, :project, 0) do
-      with {:ok, config} <-
-             Rivet.Config.build(
-               [base_dir: model_migration.external],
-               extmix.project()
-             ),
+    if module_loaded?(extmix, Path.join(path, "mix.exs")) and
+         function_exported?(extmix, :project, 0) do
+      with {:ok, config} <- Rivet.Config.build([base_dir: path], extmix.project()),
            do: load_project_migrations(state, model_migration.migrations, config)
     else
       {:error, "Unable to find project information at #{extmix}"}
