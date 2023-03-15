@@ -26,16 +26,19 @@ defmodule Rivet.Migration.Load do
   #         {:ok, rivet_migrations()} | rivet_error()
   def prepare_project_migrations(opts, project_config) do
     with {:ok, config} <- Rivet.Config.build(opts, project_config),
-         {:ok, migs} <- load_migrations_from_config(config) do
-      {:ok,
-       Enum.map(migs, fn %{module: mod, index: ver, path: path} ->
-         if module_loaded?(mod, path) and function_exported?(mod, :__migration__, 0) do
-           {ver, mod}
-         else
-           raise Ecto.MigrationError, "Module #{mod} in #{path} does not define an Ecto.Migration"
-         end
-       end)}
-    end
+         {:ok, %{idx: idx}} <- load_migrations_from_config(config),
+         do: {:ok, Map.keys(idx) |> Enum.sort() |> Enum.map(&idx[&1])}
+  end
+
+  def to_ecto_migrations(migs) do
+    {:ok,
+     Enum.map(migs, fn %{module: mod, index: ver, path: path} ->
+       if module_loaded?(mod, path) and function_exported?(mod, :__migration__, 0) do
+         {ver, mod}
+       else
+         raise Ecto.MigrationError, "Module #{mod} in #{path} does not define an Ecto.Migration"
+       end
+     end)}
   end
 
   ##############################################################################
@@ -47,8 +50,7 @@ defmodule Rivet.Migration.Load do
       {:error, "Migrations file is missing (#{migfile})"}
     else
       with {:ok, mig_data} <- load_data_file(migfile),
-           {:ok, %{idx: idx}} <- load_project_migrations(@initial_state, mig_data, rivet_config),
-           do: {:ok, Map.keys(idx) |> Enum.sort() |> Enum.map(&idx[&1])}
+           do: load_project_migrations(@initial_state, mig_data, rivet_config)
     end
   end
 
