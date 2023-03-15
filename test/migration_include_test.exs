@@ -1,17 +1,12 @@
-defmodule Rivet.Test.Migration do
+defmodule Rivet.Test.MigrationInclude do
   use Rivet.Case, async: true
 
-  setup do
+  test "migration include" do
     tmp = temp_dir()
     :ok = File.mkdir_p!(tmp)
     on_exit(fn -> File.rm_rf!(tmp) end)
-    %{tmp: tmp}
-  end
-
-  test "migration things", %{tmp: tmp} do
     root = "#{tmp}/pinky"
     :ok = File.mkdir_p("#{root}/migrations")
-
     :ok =
       File.write(
         "#{root}/migrations/.index.exs",

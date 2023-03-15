@@ -46,7 +46,7 @@ defmodule Rivet.Migration.Load do
   defp load_project_migrations(state, [], _), do: {:ok, state}
 
   # # # # #
-  defp load_project_migration(model_migration, state, %{opts: opts} = config) do
+  defp load_project_migration(%{include: _} = model_migration, state, %{opts: opts} = config) do
     with {:ok, model_migration} <- prepare_model_config(model_migration, config) do
       {:ok, state}
       |> merge_model_migrations(model_migration, @index_file, true)
@@ -54,8 +54,8 @@ defmodule Rivet.Migration.Load do
     end
   end
 
-  defp load_project_migration(%{external: _} = ext, _state, _cfg) do
-    extmix = module_extend(ext.external, "MixProject")
+  defp load_project_migration(%{external: _} = model_migration, _state, _cfg) do
+    extmix = module_extend(model_migration.external, "MixProject")
 
     if Code.ensure_loaded?(extmix) and function_exported?(extmix, :project, 0) do
       with {:ok, config} <-
@@ -75,7 +75,7 @@ defmodule Rivet.Migration.Load do
     do: {:error, "Invalid migration (no include or external key): #{inspect(model_migration)}"}
 
   ##############################################################################
-  def prepare_model_config(%{include: modref} = model_migration, %{models_root: root} = cfg) do
+  def prepare_model_config(%{include: modref} = model_migration, %{models_root: root}) do
     model = migration_model(modref)
     path = Path.join(Path.split(root) ++ [Transmogrify.pathname(model), "migrations"])
     {:ok, Map.merge(model_migration, %{model: model, path: path})}
