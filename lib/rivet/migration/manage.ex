@@ -95,29 +95,35 @@ defmodule Rivet.Migration.Manage do
   @minimum 100
   @maximum 9999
 
-  defp get_include_prefix(inc) do
-    case Keyword.get(inc, :prefix) do
-      prefix when is_number(prefix) ->
-        {:ok, prefix}
+  defp get_include_prefix(%{prefix: p}, x, y) when is_number(p), do: {:ok, p, x, y}
 
-      prefix when is_binary(prefix) ->
-        with {:error, reason} <- Rivet.Utils.Types.as_int(prefix) do
-          {:error, "Invalid include prefix (#{reason}): #{inspect(inc)}"}
-        end
-
-      _ ->
-        {:error, "Invalid or missing include prefix: #{inspect(inc)}"}
+  defp get_include_prefix(%{prefix: prefix}, x, y) when is_binary(prefix) do
+    case Rivet.Utils.Types.as_int(prefix) do
+      {:ok, num} -> {:ok, num, x, y}
+      {:error, reason} -> {:error, "Invalid include prefix #{prefix}: #{reason}"}
     end
   end
 
-  defp migrations_scan_for_insert([mig | rest], {last, hist}) do
-    with {:ok, prefix} <- get_include_prefix(mig) do
+  defp get_include_prefix(%{external: _, migrations: m}, last, hist) do
+    with {:ok, p} <- get_highest_prefix(m, {last, hist}) do
+      {:ok, p, last, hist}
+    end
+  end
+
+  defp get_include_prefix(x, _, _),
+    do: {:error, "Invalid or missing include prefix: #{inspect(Map.to_list(x))}"}
+
+  ##############################################################################
+  defp get_highest_prefix([mig | rest], {last, hist}) do
+    dmig = Map.new(mig)
+
+    with {:ok, prefix, last, hist} <- get_include_prefix(dmig, last, hist) do
       last = max(prefix, last)
 
       case {hist[prefix], hist[mig[:include]]} do
         {nil, nil} ->
           hist = Map.merge(hist, %{prefix => mig, mig[:include] => true})
-          migrations_scan_for_insert(rest, {last, hist})
+          get_highest_prefix(rest, {last, hist})
 
         {_, true} ->
           {:exists, mig[:prefix]}
@@ -132,11 +138,14 @@ defmodule Rivet.Migration.Manage do
     end
   end
 
-  defp migrations_scan_for_insert([], {last, _hist}), do: {:ok, last + @stepping}
+  #  + @stepping}
+  defp get_highest_prefix([], {last, _hist}), do: {:ok, last}
 
   def add_migration_include(file, model) when is_binary(file) and is_atom(model) do
     with {migs, _} <- Code.eval_file(file),
-         {:ok, next} <- migrations_scan_for_insert(migs, {@minimum - @stepping, %{}}) do
+         {:ok, next} <- get_highest_prefix(migs, {@minimum - @stepping, %{}}) do
+      next = next + @stepping
+
       if next > @maximum do
         raise "Out of prefixes!"
       end
