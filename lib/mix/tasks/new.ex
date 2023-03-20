@@ -80,9 +80,17 @@ defmodule Mix.Tasks.Rivet.New do
   end
 
   def new({:ok, cfg}, ["model", model_name]), do: configure_model(cfg, model_name)
-  def new({:ok, cfg}, ["mig", model, label]), do: Migration.Manage.add_migration(model, label, cfg)
-  def new({:ok, cfg}, ["migration", model, label]), do: Migration.Manage.add_migration(model, label, cfg)
+  def new({:ok, cfg}, ["mig", model, label]), do: handle_add_migration(model, label, cfg)
+  def new({:ok, cfg}, ["migration", model, label]), do: handle_add_migration(model, label, cfg)
   def new(_, _), do: syntax()
+
+  defp handle_add_migration(model, label, cfg) do
+    case Migration.Manage.add_migration(model, label, cfg) do
+      {:error, reason} -> IO.puts(:stderr, reason)
+      :ok -> :ok
+      other -> IO.inspect(other, label: "Unexpected result adding migration")
+    end
+  end
 
   defp configure_model(
          %{app: app, models_root: models_root, tests_root: tests_root, base: base} = cfg,

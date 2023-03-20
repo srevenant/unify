@@ -6,7 +6,7 @@ defmodule Rivet.Migration.Manage do
   import Mix.Generator
   import Transmogrify
   use Rivet
-  
+
   @stepping 10
   @minimum 100
   @maximum 9999
@@ -36,7 +36,7 @@ defmodule Rivet.Migration.Manage do
   ##############################################################################
   def add_migration(model, label, cfg) do
     ver = (cfg.opts[:version] || datestamp()) |> as_int!()
-    parts = module_parts(model, label, ver, cfg) |> IO.inspect
+    parts = module_parts(model, label, ver, cfg)
 
     cond do
       not File.exists?(parts.path.model) ->
@@ -90,7 +90,6 @@ defmodule Rivet.Migration.Manage do
 
   ##############################################################################
   defp module_parts(model, label, ver, cfg) do
-    # IO.inspect(cfg)
     model_name =
       case String.split(modulename(model), ".") do
         [one] ->
