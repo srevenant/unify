@@ -6,7 +6,8 @@ defmodule Mix.Tasks.Rivet.New do
   require Logger
   import Rivet.Mix
   import Rivet.Migration
-  import Rivet.Migration.Manage
+  # import Rivet.Migration.Manage
+  alias Rivet.Migration
   use Rivet
 
   @shortdoc "Create a new Rivet Model or Model Migration. For full syntax try: mix rivet help"
@@ -79,8 +80,8 @@ defmodule Mix.Tasks.Rivet.New do
   end
 
   def new({:ok, cfg}, ["model", model_name]), do: configure_model(cfg, model_name)
-  def new({:ok, cfg}, ["mig", model, label]), do: add_migration(model, label, cfg)
-  def new({:ok, cfg}, ["migration", model, label]), do: add_migration(model, label, cfg)
+  def new({:ok, cfg}, ["mig", model, label]), do: Migration.Manage.add_migration(model, label, cfg)
+  def new({:ok, cfg}, ["migration", model, label]), do: Migration.Manage.add_migration(model, label, cfg)
   def new(_, _), do: syntax()
 
   defp configure_model(
@@ -160,7 +161,7 @@ defmodule Mix.Tasks.Rivet.New do
         create_file(@migrations_file, Templates.empty_list(opts))
       end
 
-      case Rivet.Migration.Manage.add_migration_include(@migrations_file, basemod) do
+      case Migration.Manage.add_include(@migrations_file, basemod) do
         {:exists, _prefix} ->
           IO.puts("""
 
@@ -190,7 +191,8 @@ defmodule Mix.Tasks.Rivet.New do
     cmd = Rivet.Mix.task_cmd(__MODULE__)
 
     IO.puts(:stderr, """
-    Syntax: mix #{cmd} model|mig|migration {path/to/model_folder (singular)} [options]
+    Syntax: mix #{cmd} model {path/to/model_folder (singular)} [options]
+    Syntax: mix #{cmd} mig|migration {path/to/model_folder (singular)} {migration_name} [options]
 
     Options:
     """)

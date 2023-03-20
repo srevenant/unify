@@ -11,10 +11,10 @@ defmodule Rivet.Config do
     lib_dir    - lib folder from base of project. Default: "lib"
     test_dir   - test folder from base of project. Default: "test"
     models_dir - sub-folder in lib for models, default: "#{app_name}"
-                 (to remove this, define models_dir as an empty string)
 
   From this we generate:
 
+    base:          - "Base.Module.Name" for models
     models_root:   - relative path to base for new models. Generated as:
                          "#{lib_dir}/#{app_dir}/#{mod_dir}"
     model_path:    - relative path to model base folder
@@ -46,17 +46,13 @@ defmodule Rivet.Config do
              base_path: Path.join(basedir),
              deps_path: Keyword.get(config, :deps_path, "deps"),
              app: app,
-             base: modulename(getconf(:app_base, opts, rivet_conf, "#{app}")),
+             base: modulename(join_parts(modelsdir)),
              opts: opts
            }
            |> Map.merge(paths)}
         end
     end
   end
-
-  # def cleandir(path) do
-  #   (Path.split(path) |> Path.join()) <> "/" |> String.replace(~r{/\./}, "/")
-  # end
 
   # so we can get an empty string not falsey
   defp getdir(key, opts, conf, default), do: getconf(key, opts, conf, default) |> Path.split()

@@ -6,10 +6,37 @@ defmodule Rivet.Migration.Manage do
   import Mix.Generator
   import Transmogrify
   use Rivet
+  
+  @stepping 10
+  @minimum 100
+  @maximum 9999
 
-  def add_migration(model, label, {:ok, opts, _}) do
-    ver = (opts[:version] || datestamp()) |> as_int!()
-    parts = module_parts(model, label, ver, opts)
+  ##############################################################################
+  def add_include(file, model) when is_binary(file) and is_atom(model) do
+    with {migs, _} <- Code.eval_file(file),
+         {:ok, next} <- get_highest_prefix(migs, {@minimum - @stepping, %{}}) do
+      next = next + @stepping
+
+      if next > @maximum do
+        raise "Out of prefixes!"
+      end
+
+      mig = [include: model, prefix: next]
+
+      migs =
+        [mig | migs]
+        |> Enum.sort(fn a, b -> Keyword.get(a, :prefix) >= Keyword.get(b, :prefix) end)
+
+      with :ok <- File.write!(file, inspect(migs, pretty: true)) do
+        {:ok, mig}
+      end
+    end
+  end
+
+  ##############################################################################
+  def add_migration(model, label, cfg) do
+    ver = (cfg.opts[:version] || datestamp()) |> as_int!()
+    parts = module_parts(model, label, ver, cfg) |> IO.inspect
 
     cond do
       not File.exists?(parts.path.model) ->
@@ -27,27 +54,27 @@ defmodule Rivet.Migration.Manage do
          "Model Migration already exists `#{parts.name.migration}` in `#{parts.path.migration}`"}
 
       true ->
-        create_migration(parts, opts)
+        create_migration(parts, cfg)
     end
   end
 
-  def add_migration(_, _, pass), do: pass
-
-  defp create_migration(parts, opts) do
+  ##############################################################################
+  defp create_migration(parts, cfg) do
     mig =
-      if opts[:base] == true do
+      if cfg.opts[:base] == true do
         [base: true]
       else
         []
       end ++ [module: as_module(parts.base), version: parts.ver]
 
     opts =
-      Map.to_list(opts)
-      |> Keyword.merge(
+      Map.take(cfg, [:app, :base, :base_path, :deps_path, :models_root, :tests_root])
+      |> Map.merge(%{
         c_base: parts.name.model,
         c_name: parts.base,
         c_index: parts.ver
-      )
+      })
+      |> Map.to_list()
 
     create_file(parts.path.migration, Templates.migration(opts))
     index = Path.join(parts.path.migrations, ".index.exs")
@@ -61,11 +88,13 @@ defmodule Rivet.Migration.Manage do
     end
   end
 
-  defp module_parts(model, label, ver, opts) do
+  ##############################################################################
+  defp module_parts(model, label, ver, cfg) do
+    # IO.inspect(cfg)
     model_name =
       case String.split(modulename(model), ".") do
         [one] ->
-          "#{opts.base}.#{one}"
+          "#{cfg.base}.#{one}"
 
         [_ | _] = mod ->
           Enum.join(mod, ".")
@@ -91,10 +120,7 @@ defmodule Rivet.Migration.Manage do
     }
   end
 
-  @stepping 10
-  @minimum 100
-  @maximum 9999
-
+  ##############################################################################
   defp get_include_prefix(%{prefix: p}, x, y) when is_number(p), do: {:ok, p, x, y}
 
   defp get_include_prefix(%{prefix: prefix}, x, y) when is_binary(prefix) do
@@ -141,24 +167,4 @@ defmodule Rivet.Migration.Manage do
   #  + @stepping}
   defp get_highest_prefix([], {last, _hist}), do: {:ok, last}
 
-  def add_migration_include(file, model) when is_binary(file) and is_atom(model) do
-    with {migs, _} <- Code.eval_file(file),
-         {:ok, next} <- get_highest_prefix(migs, {@minimum - @stepping, %{}}) do
-      next = next + @stepping
-
-      if next > @maximum do
-        raise "Out of prefixes!"
-      end
-
-      mig = [include: model, prefix: next]
-
-      migs =
-        [mig | migs]
-        |> Enum.sort(fn a, b -> Keyword.get(a, :prefix) >= Keyword.get(b, :prefix) end)
-
-      with :ok <- File.write!(file, inspect(migs, pretty: true)) do
-        {:ok, mig}
-      end
-    end
-  end
 end
