@@ -33,6 +33,7 @@ defmodule Rivet.Graphql do
 
   def parse_atom(_), do: :error
 
+  ##############################################################################
   @std_errors %{authn: "Unauthenticated", authz: "Unauthorized", args: "Invalid Arguments"}
   def error_string(errs) when is_list(errs) do
     Enum.map_join(errs, ",", &error_string/1)
@@ -55,24 +56,51 @@ defmodule Rivet.Graphql do
   def error_string(reason) when is_binary(reason), do: reason
   def error_string(reason) when is_exception(reason), do: Exception.message(reason)
 
+  def graphql_result(x, method \\ nil)
   def graphql_result({:ok, _} = pass, _), do: pass
   def graphql_result({:error, reason}, method), do: graphql_error(method, reason)
 
-  def graphql_status_result(state, method \\ nil)
+  ##############################################################################
+  def graphql_status_result(state, key \\ nil)
 
   def graphql_status_result({:error, "Unauthenticated"} = pass, _), do: pass
-  def graphql_status_result({:ok, %{success: a}} = pass, _) when is_boolean(a), do: pass
-  def graphql_status_result({:ok, result}, _), do: {:ok, %{success: true, result: result}}
+  def graphql_status_result({:ok, %{success: true}} = pass, nil), do: pass
+
+  def graphql_status_result({:ok, %{success: true, result: result} = r}, key),
+    do: {:ok, Map.delete(r, :result) |> Map.put(key, result)}
+
+  def graphql_status_result({:ok, %{success: _}} = pass, _), do: pass
+  def graphql_status_result({:ok, result}, nil), do: {:ok, %{success: true, result: result}}
+
+  def graphql_status_result({:ok, result}, key),
+    do: {:ok, Map.new([{:success, true}, {key, result}])}
 
   def graphql_status_result({:error, err}, _),
     do: {:ok, %{success: false, reason: error_string(err)}}
 
+  ##############################################################################
+  # handle multi-results with total/matching tallys
+  def graphql_status_results({:ok, meta, r}),
+    do: {:ok, Map.merge(%{success: true, results: r}, meta)}
+
+  def graphql_status_results({:ok, %{results: _, success: _}} = pass), do: pass
+
+  def graphql_status_results({:ok, r}) when is_list(r),
+    do: {:ok, %{success: true, total: length(r), matching: length(r), results: r}}
+
+  def graphql_status_results({:ok, r}),
+    do: {:ok, %{success: true, total: 1, matching: 1, results: [r]}}
+
+  def graphql_status_results(other), do: graphql_status_result(other)
+
+  ##############################################################################
   def graphql_error(method, err, logargs \\ []) do
     reason = error_string(err)
     graphql_log(method, [failure: reason] ++ logargs)
     {:error, reason}
   end
 
+  ##############################################################################
   def graphql_log(method, args \\ [])
 
   def graphql_log(nil, _), do: :ok

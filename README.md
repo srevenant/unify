@@ -17,6 +17,8 @@ Look in module docs lib/mix/tasks/index.ex for command syntax
 * maturing command set (see mix rivet help)
 * tighter integration w/Ecto (see prior)
 * mix rivet migrate is silent, need to get it noisy like typical ecto.migrate
+* tests are currently going into path/model/model_test; should just be path/model_test
+* default model shouldn't create so many things
 
 ## How to use?
 

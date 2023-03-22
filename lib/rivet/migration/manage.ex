@@ -165,5 +165,4 @@ defmodule Rivet.Migration.Manage do
 
   #  + @stepping}
   defp get_highest_prefix([], {last, _hist}), do: {:ok, last}
-
 end
