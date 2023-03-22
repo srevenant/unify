@@ -3,6 +3,7 @@ defmodule Rivet.Graphql do
   Helper functions for Absinthe resolvers.
   """
   require Logger
+  import Rivet.Utils.Ecto.Errors, only: [convert_error_changeset: 1]
 
   def current_hostname(%{context: %{hostname: h}}) when not is_nil(h), do: {:ok, h}
   def current_hostname(_), do: {:error, "No Host on session"}
@@ -36,25 +37,60 @@ defmodule Rivet.Graphql do
   ##############################################################################
   @std_errors %{authn: "Unauthenticated", authz: "Unauthorized", args: "Invalid Arguments"}
   def error_string(errs) when is_list(errs) do
-    Enum.map_join(errs, ",", &error_string/1)
+    Enum.map(errs, &error_string/1)
+    |> Enum.join(",")
   end
 
-  def error_string(%Ecto.Changeset{} = chgset) do
-    Ecto.Changeset.traverse_errors(chgset, fn {msg, opts} ->
-      Enum.reduce(opts, msg, fn {key, value}, acc ->
-        String.replace(acc, "%{#{key}}", value)
-      end)
-    end)
-    |> flatten_errors([], [])
-    |> Enum.join(", ")
-  end
+  def error_string({:error, err}) when is_map_key(@std_errors, err), do: @std_errors[err]
 
-  def error_string(%ArgumentError{message: m}), do: m
+  def error_string(%Ecto.Changeset{} = chgset), do: convert_error_changeset(chgset)
 
-  def error_string(user) when is_struct(user), do: @std_errors[:authz]
-  def error_string(reason) when is_atom(reason), do: @std_errors[reason]
-  def error_string(reason) when is_binary(reason), do: reason
-  def error_string(reason) when is_exception(reason), do: Exception.message(reason)
+  def error_string({:error, %Ecto.Changeset{} = chgset}), do: convert_error_changeset(chgset)
+
+  ### this isn't working well, see Jira ticket; for now putting back older code
+  # def error_string(errs) when is_list(errs) do
+  #   Enum.map_join(errs, ",", &error_string/1)
+  # end
+  #
+  # def error_string(%Ecto.Changeset{} = chgset) do
+  #   Ecto.Changeset.traverse_errors(chgset, fn {msg, opts} ->
+  #     Enum.reduce(opts, msg, fn {key, value}, acc ->
+  #       String.replace(acc, "%{#{key}}", value)
+  #     end)
+  #   end)
+  #   |> flatten_errors([], [])
+  #   |> Enum.join(", ")
+  # end
+  #
+  # def error_string(%ArgumentError{message: m}), do: m
+  #
+  # def error_string(user) when is_struct(user), do: @std_errors[:authz]
+  # def error_string(reason) when is_atom(reason), do: @std_errors[reason]
+  # def error_string(reason) when is_binary(reason), do: reason
+  # def error_string(reason) when is_exception(reason), do: Exception.message(reason)
+  #
+  # defp flatten_errors(errs, p, out) when is_map(errs) do
+  #   Map.to_list(errs)
+  #   |> flatten_errors(p, out)
+  # end
+  #
+  # defp flatten_errors([elem | rest], p, out) when is_map(elem) do
+  #   elem_out = flatten_errors(elem, p, out)
+  #   flatten_errors(rest, p, elem_out)
+  # end
+  #
+  # defp flatten_errors([msg | rest], prefixes, out) when is_binary(msg) do
+  #   prefix = Enum.reverse(prefixes) |> Enum.join(".")
+  #   msg_out = "#{prefix} #{msg}"
+  #   flatten_errors(rest, prefixes, [msg_out | out])
+  # end
+  #
+  # defp flatten_errors([{k, v} | rest], prefixes, out) when is_map(v) or is_list(v) do
+  #   elem_out = flatten_errors(v, [to_string(k) | prefixes], out)
+  #   flatten_errors(rest, prefixes, elem_out)
+  # end
+  #
+  # defp flatten_errors([], _, out), do: out
 
   def graphql_result(x, method \\ nil)
   def graphql_result({:ok, _} = pass, _), do: pass
@@ -106,27 +142,4 @@ defmodule Rivet.Graphql do
   def graphql_log(nil, _), do: :ok
 
   def graphql_log(method, args), do: Logger.info("graphql", [{:method, method} | args])
-
-  defp flatten_errors(errs, p, out) when is_map(errs) do
-    Map.to_list(errs)
-    |> flatten_errors(p, out)
-  end
-
-  defp flatten_errors([elem | rest], p, out) when is_map(elem) do
-    elem_out = flatten_errors(elem, p, out)
-    flatten_errors(rest, p, elem_out)
-  end
-
-  defp flatten_errors([msg | rest], prefixes, out) when is_binary(msg) do
-    prefix = Enum.reverse(prefixes) |> Enum.join(".")
-    msg_out = "#{prefix} #{msg}"
-    flatten_errors(rest, prefixes, [msg_out | out])
-  end
-
-  defp flatten_errors([{k, v} | rest], prefixes, out) when is_map(v) or is_list(v) do
-    elem_out = flatten_errors(v, [to_string(k) | prefixes], out)
-    flatten_errors(rest, prefixes, elem_out)
-  end
-
-  defp flatten_errors([], _, out), do: out
 end
