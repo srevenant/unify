@@ -47,6 +47,7 @@ defmodule Rivet.Graphql do
 
   def error_string({:error, %Ecto.Changeset{} = chgset}), do: convert_error_changeset(chgset)
 
+  def error_string(reason) when is_binary(reason), do: reason
   def error_string(reason) when is_atom(reason), do: @std_errors[reason]
 
   ### this isn't working well, see Jira ticket; for now putting back older code
