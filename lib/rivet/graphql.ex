@@ -49,6 +49,10 @@ defmodule Rivet.Graphql do
 
   def error_string(reason) when is_binary(reason), do: reason
   def error_string(reason) when is_atom(reason), do: @std_errors[reason]
+  def error_string(unexpected) do
+    Logger.error("unexpected graphql error", error: inspect(unexpected))
+    "unexpected error, see logs"
+  end
 
   ### this isn't working well, see Jira ticket; for now putting back older code
   # def error_string(errs) when is_list(errs) do
