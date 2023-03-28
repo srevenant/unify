@@ -49,6 +49,7 @@ defmodule Rivet.Graphql do
 
   def error_string(reason) when is_binary(reason), do: reason
   def error_string(reason) when is_atom(reason), do: @std_errors[reason]
+
   def error_string(unexpected) do
     Logger.error("unexpected graphql error", error: inspect(unexpected))
     "unexpected error, see logs"
@@ -123,18 +124,23 @@ defmodule Rivet.Graphql do
 
   ##############################################################################
   # handle multi-results with total/matching tallys
-  def graphql_status_results({:ok, meta, r}),
-    do: {:ok, Map.merge(%{success: true, results: r}, meta)}
+  def graphql_status_results(x, key \\ :results)
 
-  def graphql_status_results({:ok, %{results: _, success: _}} = pass), do: pass
+  def graphql_status_results({:ok, meta, r}, key),
+    do: {:ok, Map.put(meta, :success, true) |> Map.put(key, r)}
 
-  def graphql_status_results({:ok, r}) when is_list(r),
-    do: {:ok, %{success: true, total: length(r), matching: length(r), results: r}}
+  def graphql_status_results({:ok, %{results: _, success: _}} = pass, :results), do: pass
 
-  def graphql_status_results({:ok, r}),
-    do: {:ok, %{success: true, total: 1, matching: 1, results: [r]}}
+  def graphql_status_results({:ok, %{results: r, success: _} = m}, key),
+    do: {:ok, Map.delete(m, :results) |> Map.put(key, r)}
 
-  def graphql_status_results(other), do: graphql_status_result(other)
+  def graphql_status_results({:ok, r}, key) when is_list(r),
+    do: {:ok, %{success: true, total: length(r), matching: length(r)} |> Map.put(key, r)}
+
+  def graphql_status_results({:ok, r}, key),
+    do: {:ok, %{success: true, total: 1, matching: 1} |> Map.put(key, [r])}
+
+  def graphql_status_results(other, key), do: graphql_status_result(other, key)
 
   ##############################################################################
   def graphql_error(method, err, logargs \\ []) do
