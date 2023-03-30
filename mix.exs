@@ -25,6 +25,7 @@ defmodule Rivet.MixProject do
       ],
       elixirc_paths: elixirc_paths(Mix.env()),
       aliases: aliases(),
+      xref: [exclude: List.wrap(Application.get_env(:rivet, :repo))],
       rivet: [
         ## insert default options for adding models
         # migrations: []
