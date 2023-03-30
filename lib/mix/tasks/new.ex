@@ -86,9 +86,12 @@ defmodule Mix.Tasks.Rivet.New do
 
   defp handle_add_migration(model, label, cfg) do
     case Migration.Manage.add_migration(model, label, cfg) do
-      {:error, reason} -> IO.puts(:stderr, reason)
-      :ok -> :ok
-      other -> IO.inspect(other, label: "Unexpected result adding migration")
+      {:error, reason} ->
+        IO.puts(:stderr, reason)
+
+      :ok ->
+        :ok
+        # other -> IO.inspect(other, label: "Unexpected result adding migration")
     end
   end
 

@@ -19,7 +19,10 @@ defmodule Rivet.Ecto.Collection.Update do
       end
 
       ##########################################################################
-      def update_all(clauses, set), do: from(@model, where: ^clauses) |> @repo.update_all(set)
+      def update_all(clauses, set) when is_list(clauses),
+        do: from(@model, where: ^clauses) |> @repo.update_all(set)
+
+      def update_all(query, set), do: @repo.update_all(query, set)
 
       @spec update_fill(@model.t, attrs :: map) :: model_p_result | ecto_p_result
       def update_fill(%@model{} = item, attrs) do
