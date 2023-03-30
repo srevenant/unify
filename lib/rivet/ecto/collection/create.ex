@@ -12,6 +12,8 @@ defmodule Rivet.Ecto.Collection.Create do
           |> @model.change_post(attrs)
         end
       end
+
+      def insert(a, b), do: @repo.insert(a, b)
     end
   end
 end

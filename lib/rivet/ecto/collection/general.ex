@@ -7,11 +7,11 @@ defmodule Rivet.Ecto.Collection.General do
         do: from(@model, where: ^clauses) |> @repo.exists?()
 
       ##########################################################################
-      def count!(),
-        do: @repo.aggregate(@model, :count, :id)
+      def count!(), do: @repo.aggregate(@model, :count, :id)
 
-      def count!(claims),
-        do: @repo.aggregate(from(p in @model, where: ^claims), :count, :id)
+      def count!(claims), do: @repo.aggregate(from(p in @model, where: ^claims), :count, :id)
+
+      def aggregate(x, y), do: @repo.aggregate(x, y)
 
       ##########################################################################
       # use judiciously
