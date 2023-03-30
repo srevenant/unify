@@ -34,7 +34,7 @@ defmodule Rivet.Ecto.Collection do
                       create_prep: 2,
                       create_post: 2
 
-  def enrich_query_args(query, args) do
+  def enrich_query_args(%Ecto.Query{} = query, args) do
     Enum.reduce(args, query, fn
       {:order_by, order_by}, query -> from(query, order_by: ^order_by)
       {:desc, key}, query -> from(query, order_by: [desc: ^key])
