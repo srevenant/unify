@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Rivet.New.Migration do
-  import Rivet.Cli
-  import Rivet.Cli.Print
+  import Rivet.Utils.Cli
+  import Rivet.Utils.Cli.Print
   alias Rivet.Migration
 
   def run(optcfg, opts, [model, label]) do

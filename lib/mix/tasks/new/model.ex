@@ -2,8 +2,8 @@ defmodule Mix.Tasks.Rivet.New.Model do
   import Mix.Generator
   import Transmogrify
   import Rivet.Migration
-  alias Rivet.Cli.Templates
-  import Rivet.Cli
+  alias Rivet.Utils.Cli.Templates
+  import Rivet.Utils.Cli
   alias Rivet.Migration
   use Rivet
 
@@ -113,7 +113,7 @@ defmodule Mix.Tasks.Rivet.New.Model do
 
   # ################################################################################
   # def syntax(_opts \\ nil) do
-  #   cmd = Rivet.Cli.task_cmd(__MODULE__)
+  #   cmd = Rivet.Utils.Cli.task_cmd(__MODULE__)
   #
   #   IO.puts(:stderr, """
   #   Syntax: mix #{cmd} model {path/to/model_folder (singular)} [options]

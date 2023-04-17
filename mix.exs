@@ -63,7 +63,7 @@ defmodule Rivet.MixProject do
       {:excoveralls, "~> 0.14", only: :test},
       {:mix_test_watch, "~> 0.8", only: [:test, :dev], runtime: false},
       {:postgrex, "~> 0.13", only: [:test]},
-      {:rivet_utils, "~> 1.0.4"},
+      {:rivet_utils, "~> 1.1.5"},
       {:transmogrify, "~> 1.1"},
       {:typed_ecto_schema, "~> 0.3.0 or ~> 0.4.1"},
       {:yaml_elixir, "~> 2.8.0"}

@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Rivet.List do
   use Mix.Task
-  # import Rivet.Cli
+  # import Rivet.Utils.Cli
   import Rivet.Migration
   import String, only: [slice: 2]
   require Logger
@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Rivet.List do
   # "Manage Rivet migrations"
   @shortdoc "List migrations/models. For full syntax try: mix rivet help"
 
-  # TODO: Update this to use Rivet.Cli
+  # TODO: Update this to use Rivet.Utils.Cli
   @switches [
     lib_dir: [:string, :keep],
     models_dir: [:string, :keep],
@@ -88,7 +88,7 @@ defmodule Mix.Tasks.Rivet.List do
 
   ################################################################################
   def syntax(err \\ false) do
-    cmd = Rivet.Cli.task_cmd(__MODULE__)
+    cmd = Rivet.Utils.Cli.task_cmd(__MODULE__)
 
     IO.puts(:stderr, """
     Availble Tasks:
