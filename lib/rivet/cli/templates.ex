@@ -1,4 +1,4 @@
-defmodule Rivet.Mix.Templates do
+defmodule Rivet.Cli.Templates do
   # use Mix.Task
   import Mix.Generator
 

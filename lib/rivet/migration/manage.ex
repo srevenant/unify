@@ -2,7 +2,7 @@ defmodule Rivet.Migration.Manage do
   require Logger
   import Rivet.Migration
   import Rivet.Utils.Types, only: [as_int!: 1]
-  alias Rivet.Mix.Templates
+  alias Rivet.Cli.Templates
   import Mix.Generator
   import Transmogrify
   use Rivet

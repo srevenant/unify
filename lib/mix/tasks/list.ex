@@ -1,12 +1,33 @@
 defmodule Mix.Tasks.Rivet.List do
   use Mix.Task
-  import Rivet.Mix
+  # import Rivet.Cli
   import Rivet.Migration
   import String, only: [slice: 2]
   require Logger
 
   # "Manage Rivet migrations"
   @shortdoc "List migrations/models. For full syntax try: mix rivet help"
+
+  # TODO: Update this to use Rivet.Cli
+  @switches [
+    lib_dir: [:string, :keep],
+    models_dir: [:string, :keep],
+    test_dir: [:string, :keep],
+    app_base: [:string, :keep],
+    #      order: [:integer, :keep],
+    model: :boolean
+    #      lib: :boolean,
+    #      migration: :boolean,
+    #      loader: :boolean,
+    #      seeds: :boolean,
+    #      graphql: :boolean,
+    #      resolver: :boolean,
+    #      rest: :boolean,
+    #      cache: :boolean,
+    #      test: :boolean
+  ]
+  def parse_options(args, switches, aliases \\ []),
+    do: OptionParser.parse(args, strict: @switches ++ switches, aliases: aliases)
 
   @impl true
   def run(["help"]), do: syntax()
@@ -67,7 +88,7 @@ defmodule Mix.Tasks.Rivet.List do
 
   ################################################################################
   def syntax(err \\ false) do
-    cmd = Rivet.Mix.task_cmd(__MODULE__)
+    cmd = Rivet.Cli.task_cmd(__MODULE__)
 
     IO.puts(:stderr, """
     Availble Tasks:

@@ -15,7 +15,8 @@ defmodule Rivet.Ecto.Collection.All do
         do: Rivet.Ecto.Collection.enrich_query_args(query, args) |> @repo.all()
 
       ##########################################################################
-      @spec all(keyword() | Ecto.Query.t(), list()) :: {:error, ecto_p_result} | {:ok, [@model.t()]}
+      @spec all(keyword() | Ecto.Query.t(), list()) ::
+              {:error, ecto_p_result} | {:ok, [@model.t()]}
       def all(clauses \\ [], args \\ []) do
         {:ok, all!(clauses, args)}
       rescue
