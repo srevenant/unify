@@ -66,10 +66,10 @@ defmodule Rivet.Ecto.Collection.Model do
 
       #
       defp validate_unique_constraints(chgset, [{key, opts} | rest]),
-        do: foreign_key_constraint(chgset, key, opts) |> validate_unique_constraints(rest)
+        do: unique_constraint(chgset, key, opts) |> validate_unique_constraints(rest)
 
       defp validate_unique_constraints(chgset, [key | rest]),
-        do: foreign_key_constraint(chgset, key) |> validate_unique_constraints(rest)
+        do: unique_constraint(chgset, key) |> validate_unique_constraints(rest)
 
       defp validate_unique_constraints(chgset, []), do: chgset
 
