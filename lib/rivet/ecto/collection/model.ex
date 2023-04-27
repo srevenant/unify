@@ -1,6 +1,28 @@
 defmodule Rivet.Ecto.Collection.Model do
+  import Ecto.Changeset
+
+  @spec validate_foreign_keys(Ecto.Changeset.t(), [{term(), keyword()} | term()]) :: Ecto.Changeset.t()
+  def validate_foreign_keys(chgset, [{key, opts} | rest]),
+    do: foreign_key_constraint(chgset, key, opts) |> validate_foreign_keys(rest)
+
+  def validate_foreign_keys(chgset, [key | rest]),
+    do: foreign_key_constraint(chgset, key) |> validate_foreign_keys(rest)
+
+  def validate_foreign_keys(chgset, []), do: chgset
+
+  @spec validate_unique_constraints(Ecto.Changeset.t(), [{term(), keyword()} | term()]) :: Ecto.Changeset.t()
+  def validate_unique_constraints(chgset, [{key, opts} | rest]),
+    do: unique_constraint(chgset, key, opts) |> validate_unique_constraints(rest)
+
+  def validate_unique_constraints(chgset, [key | rest]),
+    do: unique_constraint(chgset, key) |> validate_unique_constraints(rest)
+
+  def validate_unique_constraints(chgset, []), do: chgset
+
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do
+      import Rivet.Ecto.Collection.Model, only: [validate_foreign_keys: 2, validate_unique_constraints: 2]
+
       @required_fields Keyword.get(opts, :required, []) |> Enum.uniq()
       @update_allowed_fields Keyword.get(opts, :update, []) |> Enum.uniq()
       @create_allowed_fields (Keyword.get(opts, :create, [:id]) ++
@@ -55,23 +77,6 @@ defmodule Rivet.Ecto.Collection.Model do
       """
       def create_post(item, params), do: item
       defoverridable create_post: 2
-
-      defp validate_foreign_keys(chgset, [{key, opts} | rest]),
-        do: foreign_key_constraint(chgset, key, opts) |> validate_foreign_keys(rest)
-
-      defp validate_foreign_keys(chgset, [key | rest]),
-        do: foreign_key_constraint(chgset, key) |> validate_foreign_keys(rest)
-
-      defp validate_foreign_keys(chgset, []), do: chgset
-
-      #
-      defp validate_unique_constraints(chgset, [{key, opts} | rest]),
-        do: unique_constraint(chgset, key, opts) |> validate_unique_constraints(rest)
-
-      defp validate_unique_constraints(chgset, [key | rest]),
-        do: unique_constraint(chgset, key) |> validate_unique_constraints(rest)
-
-      defp validate_unique_constraints(chgset, []), do: chgset
 
       cond do
         @foreign_keys == [] and @unique_constraints == [] ->
