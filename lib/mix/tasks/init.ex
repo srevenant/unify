@@ -1,7 +1,7 @@
 defmodule Mix.Tasks.Rivet.Init do
   use Mix.Task
   use Rivet
-  alias Rivet.Utils.Cli.Templates
+  alias Rivet.Ecto.Templates
   import Mix.Generator
 
   @shortdoc "Initialize a Rivets project. For full syntax try: mix rivet help"

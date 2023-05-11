@@ -2,7 +2,7 @@ defmodule Mix.Tasks.Rivet.New.Model do
   import Mix.Generator
   import Transmogrify
   import Rivet.Migration
-  alias Rivet.Utils.Cli.Templates
+  alias Rivet.Ecto.Templates
   import Rivet.Utils.Cli
   alias Rivet.Migration
   use Rivet
