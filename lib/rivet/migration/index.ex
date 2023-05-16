@@ -29,25 +29,20 @@ defmodule Rivet.Migration do
           migrations: nil | list()
         }
 
-  # amazing that elixir still suffers with built-in time formatting; I don't
-  # want to bring in a third-party lib, so just use posix time for now
-  # is there something native to elixir that allows me to get this datestamp
-  # in local system timezone without jumping through a bunch of hoops?
   def datestamp() do
-    case System.cmd("date", ["+%0Y%0m%0d%0H%0M%0S"]) do
-      {ts, 0} -> String.trim(ts)
-    end
+    NaiveDateTime.local_now()
+    |> NaiveDateTime.to_string()
   end
 
   def maxlen_in(list, func \\ & &1),
     do: Enum.reduce(list, 0, fn i, x -> max(String.length(func.(i)), x) end)
 
-  def as_module(name), do: "Elixir.#{modulename(name)}" |> String.to_atom()
+  def as_module(name), do: Module.concat([modulename(name)])
 
-  def module_extend(parent, mod), do: as_module("#{modulename(parent)}.#{modulename(mod)}")
+  def module_extend(parent, mod), do: Module.concat(modulename(parent), modulename(mod))
 
   def module_pop(mod),
-    do: String.split("#{mod}", ".") |> Enum.slice(0..-2) |> Enum.join(".") |> as_module()
+    do: Module.split(mod) |> Enum.slice(0..-2) |> Module.concat()
 
   def pad(s, w, fill \\ "0")
   def pad(s, w, fill) when is_binary(s) and w < 0, do: String.pad_trailing(s, abs(w), fill)
@@ -56,7 +51,7 @@ defmodule Rivet.Migration do
   def pad(s, w, fill), do: String.pad_leading("#{s}", w, fill)
 
   def migration_model(mod) do
-    case String.split("#{mod}", ".") |> Enum.reverse() do
+    case Module.split(mod) |> Enum.reverse() do
       ["Migrations", model | _] -> model
       [model | _] -> model
     end
