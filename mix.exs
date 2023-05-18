@@ -25,8 +25,15 @@ defmodule Rivet.MixProject do
       ],
       elixirc_paths: elixirc_paths(Mix.env()),
       aliases: aliases(),
-      xref: [exclude: List.wrap(Application.get_env(:rivet, :repo))],
-      rivet: [
+      xref: [exclude: List.wrap(Application.get_env(:rivet, :repo))]
+    ]
+  end
+
+  def application do
+    [
+      extra_applications: [:logger],
+      env: [
+        # rivet: [
         ## insert default options for adding models
         # migrations: []
         # version_strategy: :date # :increment ??
@@ -34,13 +41,8 @@ defmodule Rivet.MixProject do
         # migration_dir: "",
         # lib_dir: "",
         # test_dir: ""
-      ]
-    ]
-  end
-
-  def application do
-    [
-      extra_applications: [:logger],
+        # ]
+      ],
       mod: {Rivet.Application, []}
     ]
   end
