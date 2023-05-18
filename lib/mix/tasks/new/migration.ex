@@ -7,6 +7,7 @@ defmodule Mix.Tasks.Rivet.New.Migration do
     with {:ok, cfg} <- Mix.Tasks.Rivet.New.get_config(optcfg, opts),
          {:error, reason} <- Migration.Manage.add_migration(model, label, cfg),
          do: die(reason)
+
     :ok
   end
 

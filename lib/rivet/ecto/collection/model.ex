@@ -1,7 +1,8 @@
 defmodule Rivet.Ecto.Collection.Model do
   import Ecto.Changeset
 
-  @spec validate_foreign_keys(Ecto.Changeset.t(), [{term(), keyword()} | term()]) :: Ecto.Changeset.t()
+  @spec validate_foreign_keys(Ecto.Changeset.t(), [{term(), keyword()} | term()]) ::
+          Ecto.Changeset.t()
   def validate_foreign_keys(chgset, [{key, opts} | rest]),
     do: foreign_key_constraint(chgset, key, opts) |> validate_foreign_keys(rest)
 
@@ -10,7 +11,8 @@ defmodule Rivet.Ecto.Collection.Model do
 
   def validate_foreign_keys(chgset, []), do: chgset
 
-  @spec validate_unique_constraints(Ecto.Changeset.t(), [{term(), keyword()} | term()]) :: Ecto.Changeset.t()
+  @spec validate_unique_constraints(Ecto.Changeset.t(), [{term(), keyword()} | term()]) ::
+          Ecto.Changeset.t()
   def validate_unique_constraints(chgset, [{key, opts} | rest]),
     do: unique_constraint(chgset, key, opts) |> validate_unique_constraints(rest)
 
@@ -21,7 +23,8 @@ defmodule Rivet.Ecto.Collection.Model do
 
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do
-      import Rivet.Ecto.Collection.Model, only: [validate_foreign_keys: 2, validate_unique_constraints: 2]
+      import Rivet.Ecto.Collection.Model,
+        only: [validate_foreign_keys: 2, validate_unique_constraints: 2]
 
       @required_fields Keyword.get(opts, :required, []) |> Enum.uniq()
       @update_allowed_fields Keyword.get(opts, :update, []) |> Enum.uniq()

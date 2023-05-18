@@ -9,6 +9,6 @@ defmodule RivetTestLib.Yoink.Migrations.Base do
       timestamps()
     end
 
-    #create(index(:auth_accesses, [:domain, :ref_id]))
+    # create(index(:auth_accesses, [:domain, :ref_id]))
   end
 end
