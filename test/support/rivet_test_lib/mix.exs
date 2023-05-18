@@ -15,6 +15,7 @@ defmodule RivetTestLib.MixProject do
     [
       env: [
         rivet: [
+          app: :rivet_test_lib
         ]
       ],
       extra_applications: [:logger]

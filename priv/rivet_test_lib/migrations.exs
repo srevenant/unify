@@ -1,1 +1,0 @@
-../rivet/migrations.exs
