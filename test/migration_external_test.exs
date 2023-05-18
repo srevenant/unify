@@ -2,22 +2,21 @@ defmodule Rivet.Test.MigrationExternal do
   use Rivet.Case
 
   test "migration external" do
-    [_ | _] = File.cp_r!("priv/rivet_test_lib", "deps/rivet_test_lib")
-    tmp = temp_dir()
-    root = "#{tmp}/pinky"
-    :ok = File.mkdir_p("#{root}/migrations")
+    Code.prepend_path("test/support/rivet_test_lib/ebin")
+    Application.ensure_loaded(:rivet_test_lib)
+    :ok = File.mkdir_p("priv/rivet/pinky")
 
     :ok =
       File.write(
-        "#{root}/migrations/.index.exs",
+        "priv/rivet/pinky/index.exs",
         inspect([
-          [base: true, version: 0, module: Base]
+          [base: true, version: 0, module: Pinky.Base]
         ])
       )
 
     :ok =
       File.write(
-        "#{root}/migrations/base.exs",
+        "priv/rivet/pinky/base.exs",
         """
         defmodule Pinky.Base do
           use Ecto.Migration
@@ -33,28 +32,28 @@ defmodule Rivet.Test.MigrationExternal do
 
     :ok =
       File.write(
-        "#{tmp}/.migrations.exs",
+        "priv/rivet/migrations.exs",
         inspect([
           [
-            include: Pinky,
+            include: "pinky",
             prefix: 400
           ],
           [
-            external: RivetTestLib,
+            external: :rivet_test_lib,
             migrations: [
-              [include: RivetTestLib.Yoink.Migrations, prefix: 300]
+              [include: "yoink", prefix: 300]
             ]
           ]
         ])
       )
 
     on_exit(fn ->
-      File.rm_rf!(tmp)
-      File.rm_rf!("deps/rivet_test_lib")
+      File.rm_rf!("priv/rivet")
     end)
 
-    opts = [base_dir: tmp, lib_dir: ".", models_dir: ""]
-    cfg = Mix.Project.config()
+    opts = [base_dir: ".", lib_dir: ".", models_dir: ""]
+    cfg = [app: :rivet]
+    Application.put_env(:rivet, :rivet, cfg)
 
     assert {:ok, migs} = Rivet.Migration.Load.prepare_project_migrations(opts, cfg)
 

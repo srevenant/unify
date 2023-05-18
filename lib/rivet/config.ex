@@ -28,13 +28,12 @@ defmodule Rivet.Config do
 
   """
   # @spec build(Keyword.t(), Keyword.t()) :: {:ok, rivet_config()} | rivet_error()
-  def build(opts, config) do
-    case config[:app] do
+  def build(opts, rivet_conf) do
+    case rivet_conf[:app] do
       nil ->
         {:error, "Unable to find app configuration in config?"}
 
       app ->
-        rivet_conf = config[:rivet] || []
         basedir = getdir(:base_dir, opts, rivet_conf, ".")
         libdir = getdir(:lib_dir, opts, rivet_conf, "lib")
         testdir = getdir(:test_dir, opts, rivet_conf, "test")
@@ -44,7 +43,7 @@ defmodule Rivet.Config do
           {:ok,
            %{
              base_path: Path.join(basedir),
-             deps_path: Keyword.get(config, :deps_path, "deps"),
+             deps_path: Keyword.get(rivet_conf, :deps_path, "deps"),
              app: app,
              base: modulename(join_parts(modelsdir)),
              opts: opts
