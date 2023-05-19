@@ -31,7 +31,7 @@ defmodule Rivet.Migration do
 
   def datestamp() do
     NaiveDateTime.local_now()
-    |> NaiveDateTime.to_string()
+    |> Calendar.strftime("%0Y%0m%0d%0H%0M%0S")
   end
 
   def maxlen_in(list, func \\ & &1),
