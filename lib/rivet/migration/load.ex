@@ -19,16 +19,21 @@ defmodule Rivet.Migration.Load do
       false
   end
 
+  def config_build(opts, app) do
+    Application.ensure_loaded(app)
+    app_config = Application.get_env(app, :rivet, [])
+
+    config = Keyword.put(app_config, :opts, opts) |> Map.new()
+  end
+
   @doc """
   External interface to get migrations ready for use by Ecto
   """
   # @spec prepare_project_migrations(opts :: list(), project_config :: list()) ::
   #         {:ok, rivet_migrations()} | rivet_error()
   def prepare_project_migrations(opts, app) do
-    Application.ensure_loaded(app)
-    app_config = Application.get_env(app, :rivet, [])
+    config = config_build(opts, app)
 
-    config = Keyword.put(app_config, :opts, opts) |> Map.new()
     with {:ok, %{idx: idx}} <- load_migrations_from_config(config),
          do: {:ok, Map.keys(idx) |> Enum.sort() |> Enum.map(&idx[&1])}
   end
@@ -95,11 +100,9 @@ defmodule Rivet.Migration.Load do
   end
 
   defp load_project_migration(%{external: extapp} = model_migration, state, _cfg) do
-    with appdir <- Application.app_dir(extapp),
-         {:ok, config} <-
-           Rivet.Config.build([base_dir: appdir], Application.fetch_env!(extapp, :rivet)) do
-      load_project_migrations(state, model_migration.migrations, config)
-    end
+    appdir = Application.app_dir(extapp)
+    config = config_build([base_dir: appdir], extapp)
+    load_project_migrations(state, model_migration.migrations, config)
   end
 
   defp load_project_migration(model_migration, _, _),
