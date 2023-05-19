@@ -76,11 +76,21 @@ defmodule Mix.Tasks.Rivet.New.Model do
         create_directory(migdir)
         rivetmigdir = Application.app_dir(app, "priv/rivet")
         create_file(Path.join([rivetmigdir, model_name, @index_file]), Templates.migrations(opts))
-        create_file(Path.join([rivetmigdir, model_name, @archive_file]), Templates.empty_list(opts))
-        create_file(Path.join([rivetmigdir, model_name, "base.exs"]), Templates.base_migration(opts))
+
+        create_file(
+          Path.join([rivetmigdir, model_name, @archive_file]),
+          Templates.empty_list(opts)
+        )
+
+        create_file(
+          Path.join([rivetmigdir, model_name, "base.exs"]),
+          Templates.base_migration(opts)
+        )
+
         basemod = as_module("#{opts[:c_mod]}.Migrations")
 
         migrations_file = Path.join(rivetmigdir, @migrations_file)
+
         if not File.exists?(migrations_file) do
           create_file(migrations_file, Templates.empty_list(opts))
         end

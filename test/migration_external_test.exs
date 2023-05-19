@@ -55,7 +55,7 @@ defmodule Rivet.Test.MigrationExternal do
     cfg = [app: :rivet]
     Application.put_env(:rivet, :rivet, cfg)
 
-    assert {:ok, migs} = Rivet.Migration.Load.prepare_project_migrations(opts, cfg)
+    assert {:ok, migs} = Rivet.Migration.Load.prepare_project_migrations(opts, :rivet)
 
     assert {:ok,
             [

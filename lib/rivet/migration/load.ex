@@ -24,8 +24,10 @@ defmodule Rivet.Migration.Load do
   """
   # @spec prepare_project_migrations(opts :: list(), project_config :: list()) ::
   #         {:ok, rivet_migrations()} | rivet_error()
-  def prepare_project_migrations(opts, project_config) do
-    with {:ok, config} <- Rivet.Config.build(opts, project_config),
+  def prepare_project_migrations(opts, app) do
+    app_config = Application.get_env(app, :rivet, [])
+
+    with {:ok, config} <- Rivet.Config.build(opts, app_config),
          {:ok, %{idx: idx}} <- load_migrations_from_config(config),
          do: {:ok, Map.keys(idx) |> Enum.sort() |> Enum.map(&idx[&1])}
   end

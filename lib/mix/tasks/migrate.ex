@@ -49,7 +49,7 @@ defmodule Mix.Tasks.Rivet.Migrate do
   def run(args) do
     migrator = &Ecto.Migrator.run/4
 
-    case Rivet.Migration.Load.prepare_project_migrations(args, Mix.Project.config()) do
+    case Rivet.Migration.Load.prepare_project_migrations(args, Mix.Project.config()[:app]) do
       {:ok, rivet_migs} ->
         with {:ok, migs} <- Rivet.Migration.Load.to_ecto_migrations(rivet_migs) do
           repos = parse_repo(args)
