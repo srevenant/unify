@@ -28,8 +28,8 @@ defmodule Rivet.Migration.Load do
     Application.ensure_loaded(app)
     app_config = Application.get_env(app, :rivet, [])
 
-    with {:ok, config} <- Rivet.Config.build(opts, app_config),
-         {:ok, %{idx: idx}} <- load_migrations_from_config(config),
+    config = Keyword.put(app_config, :opts, opts) |> Map.new()
+    with {:ok, %{idx: idx}} <- load_migrations_from_config(config),
          do: {:ok, Map.keys(idx) |> Enum.sort() |> Enum.map(&idx[&1])}
   end
 
