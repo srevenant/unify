@@ -68,7 +68,7 @@ defmodule Rivet.Migration.Manage do
       end ++ [module: as_module(parts.base), version: parts.ver]
 
     opts =
-      Map.take(cfg, [:app, :base, :base_path, :deps_path, :models_root, :tests_root])
+      Map.take(cfg, [:app, :base, :base_path, :models_root, :tests_root])
       |> Map.merge(%{
         c_base: parts.name.model,
         c_name: parts.base,
