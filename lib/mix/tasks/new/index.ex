@@ -10,8 +10,6 @@ defmodule Mix.Tasks.Rivet.New do
   # alias Rivet.Migration
   # use Rivet
 
-  @requirements ["app.config"]
-
   @shortdoc "Create a new Rivet Model or Model Migration. For full syntax try: mix rivet help"
 
   @moduledoc @shortdoc
@@ -74,6 +72,7 @@ defmodule Mix.Tasks.Rivet.New do
   def run(args), do: run_command(args, @optcfg)
 
   def get_config(optcfg, opts) do
+    Mix.Task.run("app.config", [])
     app = Mix.Project.config()[:app]
     Application.ensure_loaded(app)
     rivetcfg = Application.get_env(app, :rivet, [])

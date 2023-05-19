@@ -2,8 +2,6 @@ defmodule Mix.Tasks.Rivet.Migrate do
   use Mix.Task
   import Mix.Ecto
 
-  @requirements ["app.config"]
-
   @shortdoc "Commit Rivet Migrations. For full syntax try: mix rivet help"
 
   @moduledoc @shortdoc
@@ -49,6 +47,7 @@ defmodule Mix.Tasks.Rivet.Migrate do
   @impl true
   # derived from https://github.com/elixir-ecto/ecto_sql/blob/v3.9.2/lib/mix/tasks/ecto.migrate.ex#L111
   def run(args) do
+    Mix.Task.run("app.config", [])
     migrator = &Ecto.Migrator.run/4
 
     case Rivet.Migration.Load.prepare_project_migrations(args, Mix.Project.config()[:app]) do

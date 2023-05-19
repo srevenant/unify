@@ -5,8 +5,6 @@ defmodule Mix.Tasks.Rivet.List do
   import String, only: [slice: 2]
   require Logger
 
-  @requirements ["app.config"]
-
   # "Manage Rivet migrations"
   @shortdoc "List migrations/models. For full syntax try: mix rivet help"
 
@@ -35,6 +33,8 @@ defmodule Mix.Tasks.Rivet.List do
   def run(["help"]), do: syntax()
 
   def run(args) do
+    Mix.Task.run("app.config", [])
+
     case parse_options(args, [archive: :boolean], a: :archive) do
       {opts, ["model"], _} -> list_models(opts)
       {opts, ["models"], _} -> list_models(opts)

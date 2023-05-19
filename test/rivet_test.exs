@@ -7,7 +7,7 @@ defmodule Rivet.Test do
   end
 
   setup do
-    Application.put_env(:rivet, :rivet, [app: :rivet])
+    Application.put_env(:rivet, :rivet, app: :rivet)
 
     tmp = temp_dir()
     on_exit(fn -> File.rm_rf!(tmp) end)
