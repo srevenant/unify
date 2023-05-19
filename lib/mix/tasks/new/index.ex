@@ -73,6 +73,7 @@ defmodule Mix.Tasks.Rivet.New do
 
   def get_config(optcfg, opts) do
     app = Mix.Project.config()[:app]
+    Application.ensure_loaded(app)
     rivetcfg = Application.get_env(app, :rivet, [])
 
     Keyword.merge(Keyword.get(optcfg, :info), opts) |> Rivet.Config.build(rivetcfg)
