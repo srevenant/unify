@@ -4,11 +4,11 @@ defmodule Rivet.Test.MigrationExternal do
   test "migration external" do
     Code.prepend_path("test/support/rivet_test_lib/ebin")
     Application.ensure_loaded(:rivet_test_lib)
-    :ok = File.mkdir_p("priv/rivet/pinky")
+    :ok = File.mkdir_p("priv/rivet/migrations/pinky")
 
     :ok =
       File.write(
-        "priv/rivet/pinky/index.exs",
+        "priv/rivet/migrations/pinky/index.exs",
         inspect([
           [base: true, version: 0, module: Pinky.Base]
         ])
@@ -16,7 +16,7 @@ defmodule Rivet.Test.MigrationExternal do
 
     :ok =
       File.write(
-        "priv/rivet/pinky/base.exs",
+        "priv/rivet/migrations/pinky/base.exs",
         """
         defmodule Pinky.Base do
           use Ecto.Migration
@@ -32,7 +32,7 @@ defmodule Rivet.Test.MigrationExternal do
 
     :ok =
       File.write(
-        "priv/rivet/migrations.exs",
+        "priv/rivet/migrations/migrations.exs",
         inspect([
           [
             include: "pinky",

@@ -2,12 +2,12 @@ defmodule Rivet.Test.MigrationInclude do
   use Rivet.Case
 
   test "migration include" do
-    on_exit(fn -> File.rm_rf!("priv/rivet/pinky") end)
-    :ok = File.mkdir_p("priv/rivet/pinky")
+    on_exit(fn -> File.rm_rf!("priv/rivet/migrations/pinky") end)
+    :ok = File.mkdir_p("priv/rivet/migrations/pinky")
 
     :ok =
       File.write(
-        "priv/rivet/pinky/index.exs",
+        "priv/rivet/migrations/pinky/index.exs",
         inspect([
           [base: true, version: 100, module: Pinky.Brain],
           [base: false, version: 20, module: Pinky.Splat],
@@ -29,7 +29,7 @@ defmodule Rivet.Test.MigrationInclude do
 
     state = %{idx: %{}, mods: %{}}
 
-    narf_path = Application.app_dir(:rivet, "priv/rivet/pinky/narf.exs")
+    narf_path = Application.app_dir(:rivet, "priv/rivet/migrations/pinky/narf.exs")
 
     assert {:ok,
             %{

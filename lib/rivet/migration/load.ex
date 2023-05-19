@@ -46,7 +46,7 @@ defmodule Rivet.Migration.Load do
   ##############################################################################
   # @spec load_project_migrations(rivet_config()) :: {:ok, rivet_migrations()} | rivet_error()
   defp load_migrations_from_config(rivet_config) do
-    rivet_dir = Application.app_dir(rivet_config.app, "priv/rivet")
+    rivet_dir = Application.app_dir(rivet_config.app, "priv/rivet/migrations")
     migfile = Path.join(rivet_dir, @migrations_file)
 
     if not File.exists?(migfile) do
@@ -107,7 +107,7 @@ defmodule Rivet.Migration.Load do
   ##############################################################################
   # @spec prepare_model_config(rivet_migration_input_any(), rivet_config()) :: {:ok, Rivet.Migration.t()} | rivet_error()
   def prepare_model_config(%{include: modpath} = model_migration, %{app: app}) do
-    priv_dir = Application.app_dir(app, ["priv/rivet", modpath])
+    priv_dir = Application.app_dir(app, ["priv/rivet/migrations", modpath])
     {:ok, %Rivet.Migration{struct(Rivet.Migration, model_migration) | path: priv_dir}}
   end
 
