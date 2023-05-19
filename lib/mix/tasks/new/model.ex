@@ -72,9 +72,8 @@ defmodule Mix.Tasks.Rivet.New.Model do
 
       # note: keep this last for readability of the final message
       if dopts.migration do
-        migdir = Path.join(modeldir, "migrations")
-        create_directory(migdir)
-        rivetmigdir = Application.app_dir(app, "priv/rivet")
+        rivetmigdir = Application.app_dir(app, "priv/rivet/migrations")
+        create_directory(rivetmigdir)
         create_file(Path.join([rivetmigdir, model_name, @index_file]), Templates.migrations(opts))
 
         create_file(
