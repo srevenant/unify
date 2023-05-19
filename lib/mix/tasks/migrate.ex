@@ -2,6 +2,8 @@ defmodule Mix.Tasks.Rivet.Migrate do
   use Mix.Task
   import Mix.Ecto
 
+  @requirements ["app.config"]
+
   @shortdoc "Commit Rivet Migrations. For full syntax try: mix rivet help"
 
   @moduledoc @shortdoc

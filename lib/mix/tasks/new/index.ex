@@ -10,6 +10,8 @@ defmodule Mix.Tasks.Rivet.New do
   # alias Rivet.Migration
   # use Rivet
 
+  @requirements ["app.config"]
+
   @shortdoc "Create a new Rivet Model or Model Migration. For full syntax try: mix rivet help"
 
   @moduledoc @shortdoc

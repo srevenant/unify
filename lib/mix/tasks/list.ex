@@ -5,6 +5,8 @@ defmodule Mix.Tasks.Rivet.List do
   import String, only: [slice: 2]
   require Logger
 
+  @requirements ["app.config"]
+
   # "Manage Rivet migrations"
   @shortdoc "List migrations/models. For full syntax try: mix rivet help"
 
