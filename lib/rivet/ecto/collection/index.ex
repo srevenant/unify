@@ -58,6 +58,7 @@ defmodule Rivet.Ecto.Collection do
       use Rivet.Ecto.Collection.Touch, opts
       use Rivet.Ecto.Collection.Update, opts
       use Rivet.Ecto.Collection.ShortId, opts
+      use Rivet.Ecto.Collection.Latest, opts
     end
   end
 end
