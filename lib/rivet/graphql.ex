@@ -48,7 +48,7 @@ defmodule Rivet.Graphql do
   def error_string({:error, %Ecto.Changeset{} = chgset}), do: convert_error_changeset(chgset)
 
   def error_string(reason) when is_binary(reason), do: reason
-  def error_string(reason) when is_atom(reason), do: @std_errors[reason]
+  def error_string(reason) when is_atom(reason), do: @std_errors[reason] || "#{reason}"
 
   def error_string(unexpected) do
     Logger.error("unexpected graphql error", error: inspect(unexpected))
