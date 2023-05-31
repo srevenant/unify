@@ -1,6 +1,7 @@
 defmodule Rivet.Ecto.Collection.Model do
   import Ecto.Changeset
 
+  # coveralls-ignore-start
   @spec validate_foreign_keys(Ecto.Changeset.t(), [{term(), keyword()} | term()]) ::
           Ecto.Changeset.t()
   def validate_foreign_keys(chgset, [{key, opts} | rest]),
@@ -20,6 +21,7 @@ defmodule Rivet.Ecto.Collection.Model do
     do: unique_constraint(chgset, key) |> validate_unique_constraints(rest)
 
   def validate_unique_constraints(chgset, []), do: chgset
+  # coveralls-ignore-end
 
   defmacro __using__(opts) do
     quote location: :keep, bind_quoted: [opts: opts] do

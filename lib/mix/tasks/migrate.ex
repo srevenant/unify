@@ -46,6 +46,7 @@ defmodule Mix.Tasks.Rivet.Migrate do
 
   @impl true
   # derived from https://github.com/elixir-ecto/ecto_sql/blob/v3.9.2/lib/mix/tasks/ecto.migrate.ex#L111
+  # coveralls-ignore-start
   def run(args) do
     Mix.Task.run("app.config", [])
     migrator = &Ecto.Migrator.run/4
@@ -85,4 +86,5 @@ defmodule Mix.Tasks.Rivet.Migrate do
         Mix.raise(msg)
     end
   end
+  # coveralls-ignore-end
 end

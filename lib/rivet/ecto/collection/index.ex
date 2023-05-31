@@ -34,6 +34,20 @@ defmodule Rivet.Ecto.Collection do
                       create_prep: 2,
                       create_post: 2
 
+  @doc """
+  iex> enrich_query_args(%Ecto.Query{}, order_by: [asc: :asdf])
+  #Ecto.Query<from q0 in query, order_by: [asc: q0.asdf]>
+  iex> enrich_query_args(%Ecto.Query{}, desc: :asdf)
+  #Ecto.Query<from q0 in query, order_by: [desc: q0.asdf]>
+  iex> enrich_query_args(%Ecto.Query{}, asc: :asdf)
+  #Ecto.Query<from q0 in query, order_by: [asc: q0.asdf]>
+  iex> enrich_query_args(%Ecto.Query{}, limit: 10)
+  #Ecto.Query<from q0 in query, limit: ^10>
+  iex> enrich_query_args(%Ecto.Query{}, preload: [:narf])
+  #Ecto.Query<from q0 in query, preload: [:narf]>
+  iex> enrich_query_args(%Ecto.Query{}, select: [:narf])
+  #Ecto.Query<from q0 in query, select: [:narf]>
+  """
   def enrich_query_args(%Ecto.Query{} = query, args) do
     Enum.reduce(args, query, fn
       {:order_by, order_by}, query -> from(query, order_by: ^order_by)

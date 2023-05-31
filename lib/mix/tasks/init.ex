@@ -9,6 +9,7 @@ defmodule Mix.Tasks.Rivet.Init do
   @moduledoc @shortdoc
 
   @impl true
+  # coveralls-ignore-start
   def run(_args) do
     Mix.Task.run("app.config", [])
     app = Mix.Project.config()[:app]
@@ -25,4 +26,5 @@ defmodule Mix.Tasks.Rivet.Init do
        mix rivet.new model {name}
     """)
   end
+  # coveralls-ignore-end
 end

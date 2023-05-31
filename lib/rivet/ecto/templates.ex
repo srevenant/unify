@@ -22,6 +22,7 @@ defmodule Rivet.Ecto.Templates do
   end
   """)
 
+  # coveralls-ignore-start
   ################################################################################
   def empty_list(opts), do: empty_list_template(opts)
 
@@ -147,4 +148,5 @@ defmodule Rivet.Ecto.Templates do
     end
   end
   """)
+  # coveralls-ignore-end
 end
