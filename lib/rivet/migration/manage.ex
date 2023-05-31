@@ -65,7 +65,7 @@ defmodule Rivet.Migration.Manage do
         [base: true]
       else
         []
-      end ++ [module: as_module(parts.base), version: parts.ver]
+      end ++ [module: parts.name.migration, version: parts.ver]
 
     opts =
       Map.take(cfg, [:app, :base, :base_path, :models_root, :tests_root])
