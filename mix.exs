@@ -4,7 +4,7 @@ defmodule Rivet.MixProject do
   def project do
     [
       app: :rivet,
-      version: "1.0.9",
+      version: "2.0.0",
       elixir: "~> 1.13",
       description: "Elixir data model framework library",
       source_url: "https://github.com/srevenant/rivet",
@@ -25,22 +25,14 @@ defmodule Rivet.MixProject do
       ],
       elixirc_paths: elixirc_paths(Mix.env()),
       aliases: aliases(),
-      xref: [exclude: List.wrap(Application.get_env(:rivet, :repo))],
-      rivet: [
-        ## insert default options for adding models
-        # migrations: []
-        # version_strategy: :date # :increment ??
-        # app_base: Some.Project.Name, # defaults to modulename form of :app
-        # migration_dir: "",
-        # lib_dir: "",
-        # test_dir: ""
-      ]
+      xref: [exclude: List.wrap(Application.get_env(:rivet, :repo))]
     ]
   end
 
   def application do
     [
       extra_applications: [:logger],
+      env: [ ],
       mod: {Rivet.Application, []}
     ]
   end

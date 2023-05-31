@@ -5,9 +5,21 @@ defmodule Rivet.Graphql do
   require Logger
   import Rivet.Utils.Ecto.Errors, only: [convert_error_changeset: 1]
 
+  @doc """
+  iex> current_hostname(%{context: %{hostname: "narf"}})
+  {:ok, "narf"}
+  iex> current_hostname(:nope)
+  {:error, "No Host on session"}
+  """
   def current_hostname(%{context: %{hostname: h}}) when not is_nil(h), do: {:ok, h}
   def current_hostname(_), do: {:error, "No Host on session"}
 
+  @doc """
+  iex> optional_arg(%{}, :narf)
+  []
+  iex> optional_arg(%{narf: :something}, :narf)
+  [narf: :something]
+  """
   def optional_arg(map, arg) do
     case Map.get(map, arg) do
       nil -> []
@@ -15,6 +27,14 @@ defmodule Rivet.Graphql do
     end
   end
 
+  @doc """
+  iex> ok_as_list({:error, "Nothing found"})
+  {:ok, []}
+  iex> ok_as_list({:ok, :narf})
+  {:ok, [:narf]}
+  iex> ok_as_list({:error, :narf})
+  {:error, :narf}
+  """
   def ok_as_list({:error, "Nothing found"}), do: {:ok, []}
   def ok_as_list({:ok, result}), do: {:ok, [result]}
   def ok_as_list(pass), do: pass
@@ -25,6 +45,14 @@ defmodule Rivet.Graphql do
 
   def parse_enum(_, _), do: :error
 
+  @doc """
+  iex> parse_atom(%{value: "narf"})
+  {:ok, :narf}
+  iex> parse_atom(%{value: 10})
+  :error
+  iex> parse_atom(:narf)
+  :error
+  """
   def parse_atom(%{value: value}) do
     {:ok, String.to_existing_atom(value)}
   rescue
@@ -35,6 +63,20 @@ defmodule Rivet.Graphql do
   def parse_atom(_), do: :error
 
   ##############################################################################
+  @doc """
+  iex> error_string([{:error, :authz}])
+  "Unauthorized"
+  iex> error_string("narf")
+  "narf"
+  iex> error_string(:authn)
+  "Unauthenticated"
+  iex> error_string(:authn)
+  "Unauthenticated"
+  iex> error_string(:narf)
+  "narf"
+  iex> error_string({:nobody, :expects})
+  "unexpected error, see logs"
+  """
   @std_errors %{authn: "Unauthenticated", authz: "Unauthorized", args: "Invalid Arguments"}
   def error_string(errs) when is_list(errs) do
     Enum.map(errs, &error_string/1)
@@ -55,61 +97,39 @@ defmodule Rivet.Graphql do
     "unexpected error, see logs"
   end
 
-  ### this isn't working well, see Jira ticket; for now putting back older code
-  # def error_string(errs) when is_list(errs) do
-  #   Enum.map_join(errs, ",", &error_string/1)
-  # end
-  #
-  # def error_string(%Ecto.Changeset{} = chgset) do
-  #   Ecto.Changeset.traverse_errors(chgset, fn {msg, opts} ->
-  #     Enum.reduce(opts, msg, fn {key, value}, acc ->
-  #       String.replace(acc, "%{#{key}}", value)
-  #     end)
-  #   end)
-  #   |> flatten_errors([], [])
-  #   |> Enum.join(", ")
-  # end
-  #
-  # def error_string(%ArgumentError{message: m}), do: m
-  #
-  # def error_string(user) when is_struct(user), do: @std_errors[:authz]
-  # def error_string(reason) when is_atom(reason), do: @std_errors[reason]
-  # def error_string(reason) when is_binary(reason), do: reason
-  # def error_string(reason) when is_exception(reason), do: Exception.message(reason)
-  #
-  # defp flatten_errors(errs, p, out) when is_map(errs) do
-  #   Map.to_list(errs)
-  #   |> flatten_errors(p, out)
-  # end
-  #
-  # defp flatten_errors([elem | rest], p, out) when is_map(elem) do
-  #   elem_out = flatten_errors(elem, p, out)
-  #   flatten_errors(rest, p, elem_out)
-  # end
-  #
-  # defp flatten_errors([msg | rest], prefixes, out) when is_binary(msg) do
-  #   prefix = Enum.reverse(prefixes) |> Enum.join(".")
-  #   msg_out = "#{prefix} #{msg}"
-  #   flatten_errors(rest, prefixes, [msg_out | out])
-  # end
-  #
-  # defp flatten_errors([{k, v} | rest], prefixes, out) when is_map(v) or is_list(v) do
-  #   elem_out = flatten_errors(v, [to_string(k) | prefixes], out)
-  #   flatten_errors(rest, prefixes, elem_out)
-  # end
-  #
-  # defp flatten_errors([], _, out), do: out
-
+  ##############################################################################
+  @doc """
+  iex> graphql_result({:ok, :narf})
+  {:ok, :narf}
+  iex> graphql_result({:error, :args}, :narf)
+  {:error, "Invalid Arguments"}
+  """
   def graphql_result(x, method \\ nil)
   def graphql_result({:ok, _} = pass, _), do: pass
   def graphql_result({:error, reason}, method), do: graphql_error(method, reason)
 
   ##############################################################################
+  @doc """
+  iex> graphql_status_result({:error, "Unauthenticated"})
+  {:error, "Unauthenticated"}
+  iex> graphql_status_result({:ok, %{success: true, result: :narf}})
+  {:ok, %{success: true, result: :narf}}
+  iex> graphql_status_result({:ok, %{success: true, result: :narf}}, :narf)
+  {:ok, %{success: true, narf: :narf}}
+  iex> graphql_status_result({:ok, %{success: false, reason: :narf}})
+  {:ok, %{success: false, reason: :narf}}
+  iex> graphql_status_result({:ok, 100})
+  {:ok, %{success: true, result: 100}}
+  iex> graphql_status_result({:ok, 100}, :narf)
+  {:ok, %{narf: 100, success: true}}
+  iex> graphql_status_result({:error, :authz})
+  {:ok, %{reason: "Unauthorized", success: false}}
+  """
   def graphql_status_result(state, key \\ nil)
 
   def graphql_status_result({:error, "Unauthenticated"} = pass, _), do: pass
-  def graphql_status_result({:ok, %{success: true}} = pass, nil), do: pass
 
+  def graphql_status_result({:ok, %{success: true}} = pass, nil), do: pass
   def graphql_status_result({:ok, %{success: true, result: result} = r}, key),
     do: {:ok, Map.delete(r, :result) |> Map.put(key, result)}
 
@@ -123,7 +143,24 @@ defmodule Rivet.Graphql do
     do: {:ok, %{success: false, reason: error_string(err)}}
 
   ##############################################################################
-  # handle multi-results with total/matching tallys
+  @doc """
+  Handle multi-results with total/matching tallys
+
+  iex> graphql_status_results({:ok, %{success: true, results: :narf}})
+  {:ok, %{success: true, results: :narf}}
+  iex> graphql_status_results({:ok, %{success: true, results: :narf}, :narf}, :key)
+  {:ok, %{success: true, results: :narf, key: :narf}}
+  iex> graphql_status_results({:ok, %{success: true, results: :narf}}, :results)
+  {:ok, %{success: true, results: :narf}}
+  iex> graphql_status_results({:ok, %{success: true, results: :narf}}, :narf)
+  {:ok, %{success: true, narf: :narf}}
+  iex> graphql_status_results({:ok, [:narf]}, :narf)
+  {:ok, %{success: true, narf: [:narf], total: 1, matching: 1}}
+  iex> graphql_status_results({:ok, :narf}, :narf)
+  {:ok, %{success: true, narf: [:narf], total: 1, matching: 1}}
+  iex> graphql_status_results({:error, :authn})
+  {:ok, %{success: false, reason: "Unauthenticated"}}
+  """
   def graphql_status_results(x, key \\ :results)
 
   def graphql_status_results({:ok, meta, r}, key),
@@ -150,6 +187,12 @@ defmodule Rivet.Graphql do
   end
 
   ##############################################################################
+  @doc """
+  iex> graphql_log("narf")
+  :ok
+  iex> graphql_log(nil)
+  :ok
+  """
   def graphql_log(method, args \\ [])
 
   def graphql_log(nil, _), do: :ok

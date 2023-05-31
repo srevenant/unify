@@ -22,6 +22,7 @@ defmodule Rivet.Ecto.Templates do
   end
   """)
 
+  # coveralls-ignore-start
   ################################################################################
   def empty_list(opts), do: empty_list_template(opts)
 
@@ -34,8 +35,9 @@ defmodule Rivet.Ecto.Templates do
   def migrations(opts), do: migrations_template(opts)
 
   embed_template(:migrations, """
+  alias <%= @c_mod %>.Migrations, as: M
   [
-    [base: true, version: 0, module: Base]
+    [base: true, version: 0, module: M.Base]
   ]
   """)
 
@@ -146,4 +148,5 @@ defmodule Rivet.Ecto.Templates do
     end
   end
   """)
+  # coveralls-ignore-end
 end

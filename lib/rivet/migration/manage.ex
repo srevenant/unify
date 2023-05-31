@@ -46,7 +46,7 @@ defmodule Rivet.Migration.Manage do
         {:error,
          "Model Migrations not found `#{parts.name.migrations}` in `#{parts.path.migrations}`"}
 
-      # TODO: figure out how it'llwork so we can put version in path, and check
+      # TODO: figure out how it'll work so we can put version in path, and check
       # if module exists by name, without version#. Code.module_exists() doesn't
       # work with .exs files...
       File.exists?(parts.path.migration) ->
@@ -68,7 +68,7 @@ defmodule Rivet.Migration.Manage do
       end ++ [module: as_module(parts.base), version: parts.ver]
 
     opts =
-      Map.take(cfg, [:app, :base, :base_path, :deps_path, :models_root, :tests_root])
+      Map.take(cfg, [:app, :base, :base_path, :models_root, :tests_root])
       |> Map.merge(%{
         c_base: parts.name.model,
         c_name: parts.base,
@@ -77,7 +77,7 @@ defmodule Rivet.Migration.Manage do
       |> Map.to_list()
 
     create_file(parts.path.migration, Templates.migration(opts))
-    index = Path.join(parts.path.migrations, ".index.exs")
+    index = Path.join(parts.path.migrations, @index_file)
 
     with {migs, _} <- Code.eval_file(index) do
       migs =
@@ -99,6 +99,8 @@ defmodule Rivet.Migration.Manage do
           Enum.join(mod, ".")
       end
 
+    model_path = pathname(model)
+
     base = modulename(label)
     migs_name = "#{model_name}.Migrations"
     mig_name = "#{migs_name}.#{base}"
@@ -114,7 +116,7 @@ defmodule Rivet.Migration.Manage do
       path: %{
         model: "lib/" <> pathname(model_name),
         migrations: "lib/" <> pathname(migs_name),
-        migration: "lib/#{pathname(mig_name)}.exs"
+        migration: "priv/rivet/#{model_path}/#{pathname(label)}.exs"
       }
     }
   end

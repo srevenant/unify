@@ -40,9 +40,9 @@ defmodule Rivet do
       @type rivet_migrations :: list(Rivet.Migration.t())
       @type rivet_state_result() :: {:ok, rivet_migration_state()} | rivet_error()
 
-      @migrations_file ".migrations.exs"
-      @index_file ".index.exs"
-      @archive_file ".archive.exs"
+      @migrations_file "migrations.exs"
+      @index_file "index.exs"
+      @archive_file "archive.exs"
     end
   end
 end

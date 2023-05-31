@@ -9,8 +9,15 @@ defmodule Mix.Tasks.Rivet.Init do
   @moduledoc @shortdoc
 
   @impl true
+  # coveralls-ignore-start
   def run(_args) do
-    create_file(@migrations_file, Templates.empty_list([]))
+    Mix.Task.run("app.config", [])
+    app = Mix.Project.config()[:app]
+
+    migrations_file =
+      Application.app_dir(app, "priv/rivet/migrations") |> Path.join(@migrations_file)
+
+    create_file(migrations_file, Templates.empty_list([]))
 
     IO.puts("""
 
@@ -19,4 +26,5 @@ defmodule Mix.Tasks.Rivet.Init do
        mix rivet.new model {name}
     """)
   end
+  # coveralls-ignore-end
 end

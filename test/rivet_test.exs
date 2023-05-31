@@ -2,11 +2,18 @@ defmodule Rivet.Test do
   use Rivet.Case
   import ExUnit.CaptureIO
 
+  doctest Mix.Tasks.Rivet.List, import: true
+  doctest Rivet.Ecto.Collection, import: true
+  doctest Rivet.Graphql, import: true
+  doctest Rivet.Migration, import: true
+
   def read_first_line(file) do
     File.open!(file, fn f -> IO.read(f, :line) end)
   end
 
   setup do
+    Application.put_env(:rivet, :rivet, app: :rivet)
+
     tmp = temp_dir()
     on_exit(fn -> File.rm_rf!(tmp) end)
 
@@ -20,16 +27,16 @@ defmodule Rivet.Test do
   describe "Rivet New" do
     test "single path segment", dirs do
       assert capture_io(fn ->
-      Mix.Tasks.Rivet.New.run([
-        "--lib-dir",
-        dirs.lib,
-        "--test-dir",
-        dirs.tst,
-        "--no-migration",
-        "model",
-        "single"
-      ])
-      end) =~ "creating"
+               Mix.Tasks.Rivet.New.run([
+                 "--lib-dir",
+                 dirs.lib,
+                 "--test-dir",
+                 dirs.tst,
+                 "--no-migration",
+                 "model",
+                 "single"
+               ])
+             end) =~ "creating"
 
       created = Path.join(dirs.lib, "rivet/single")
       assert {:ok, files} = File.ls(created)
@@ -37,7 +44,6 @@ defmodule Rivet.Test do
 
       assert "defmodule Rivet.Single do\n" = Path.join(created, "model.ex") |> read_first_line()
     end
-
 
     test "multiple path segments", dirs do
       capture_io(fn ->
@@ -48,7 +54,7 @@ defmodule Rivet.Test do
           dirs.tst,
           "--no-migration",
           "model",
-            "multiple/segments"
+          "multiple/segments"
         ])
       end) =~ "creating"
 

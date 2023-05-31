@@ -2,34 +2,23 @@ defmodule Rivet.Test.MigrationInclude do
   use Rivet.Case
 
   test "migration include" do
-    tmp = temp_dir()
-    :ok = File.mkdir_p!(tmp)
-    on_exit(fn -> File.rm_rf!(tmp) end)
-    root = "#{tmp}/pinky"
-    :ok = File.mkdir_p("#{root}/migrations")
+    Code.prepend_path("test/support/pinky/ebin")
+    Application.ensure_loaded(:pinky)
 
-    :ok =
-      File.write(
-        "#{root}/migrations/.index.exs",
-        inspect([
-          [base: true, version: 100, module: Brain],
-          [base: false, version: 20, module: Splat],
-          [base: false, version: 3000, module: Narf],
-          [base: true, version: 0, module: Base]
-        ])
-      )
+    opts = [lib_dir: "", models_dir: ""]
 
-    opts = [lib_dir: tmp, models_dir: ""]
+    cfg = [app: :pinky]
+    Application.put_env(:pinky, :rivet, cfg)
 
-    assert {:ok, rivet_cfg} = Rivet.Config.build(opts, Mix.Project.config())
+    assert {:ok, rivet_cfg} = Rivet.Config.build(opts, cfg)
 
     assert {:ok, model_cfg} =
-             %{prefix: 200, include: Pinky}
+             %{prefix: 200, include: "pinky"}
              |> Rivet.Migration.Load.prepare_model_config(rivet_cfg)
 
     state = %{idx: %{}, mods: %{}}
 
-    narf_path = "#{tmp}/pinky/migrations/narf.exs"
+    narf_path = Application.app_dir(:pinky, "priv/rivet/migrations/pinky/narf.exs")
 
     assert {:ok,
             %{
@@ -37,7 +26,6 @@ defmodule Rivet.Test.MigrationInclude do
                 20_000_000_000_000_000 => %Rivet.Migration{
                   base: true,
                   index: 20_000_000_000_000_000,
-                  model: "Pinky",
                   module: Pinky.Base,
                   parent: Pinky,
                   prefix: 200,
@@ -46,7 +34,6 @@ defmodule Rivet.Test.MigrationInclude do
                 20_000_000_000_000_020 => %Rivet.Migration{
                   base: false,
                   index: 20_000_000_000_000_020,
-                  model: "Pinky",
                   module: Pinky.Splat,
                   parent: Pinky,
                   prefix: 200,
@@ -55,7 +42,6 @@ defmodule Rivet.Test.MigrationInclude do
                 20_000_000_000_000_100 => %Rivet.Migration{
                   base: true,
                   index: 20_000_000_000_000_100,
-                  model: "Pinky",
                   module: Pinky.Brain,
                   parent: Pinky,
                   prefix: 200,
@@ -64,7 +50,6 @@ defmodule Rivet.Test.MigrationInclude do
                 20_000_000_000_003_000 => %Rivet.Migration{
                   base: false,
                   index: 20_000_000_000_003_000,
-                  model: "Pinky",
                   module: Pinky.Narf,
                   parent: Pinky,
                   path: ^narf_path,
@@ -82,7 +67,7 @@ defmodule Rivet.Test.MigrationInclude do
              Rivet.Migration.Load.merge_model_migrations(
                {:ok, state},
                model_cfg,
-               ".index.exs",
+               "index.exs",
                true
              )
   end

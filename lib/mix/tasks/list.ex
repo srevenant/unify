@@ -26,6 +26,7 @@ defmodule Mix.Tasks.Rivet.List do
     #      cache: :boolean,
     #      test: :boolean
   ]
+  # coveralls-ignore-start
   def parse_options(args, switches, aliases \\ []),
     do: OptionParser.parse(args, strict: @switches ++ switches, aliases: aliases)
 
@@ -33,6 +34,8 @@ defmodule Mix.Tasks.Rivet.List do
   def run(["help"]), do: syntax()
 
   def run(args) do
+    Mix.Task.run("app.config", [])
+
     case parse_options(args, [archive: :boolean], a: :archive) do
       {opts, ["model"], _} -> list_models(opts)
       {opts, ["models"], _} -> list_models(opts)
@@ -43,10 +46,16 @@ defmodule Mix.Tasks.Rivet.List do
       {_, _, errs} -> syntax(inspect(errs, label: "bad arguments"))
     end
   end
+  # coveralls-ignore-start
 
   defp list_models(_opts), do: IO.puts("To be implemented")
 
-  defp module_base(name) do
+  # TODO: need to review and consolidate these helpers
+  @doc """
+  iex> module_base(This.Module.There)
+  "There"
+  """
+  def module_base(name) do
     case String.split("#{name}", ".") do
       list -> List.last(list)
     end
@@ -54,7 +63,7 @@ defmodule Mix.Tasks.Rivet.List do
 
   defp list_migrations(opts) do
     with {:ok, migs} <-
-           Rivet.Migration.Load.prepare_project_migrations(opts, Mix.Project.config()) do
+           Rivet.Migration.Load.prepare_project_migrations(opts, Mix.Project.config()[:app]) do
       migs =
         Enum.map(migs, fn mig ->
           Map.merge(mig, %{
@@ -87,6 +96,7 @@ defmodule Mix.Tasks.Rivet.List do
   end
 
   ################################################################################
+  # coveralls-ignore-start
   def syntax(err \\ false) do
     cmd = Rivet.Utils.Cli.task_cmd(__MODULE__)
 
@@ -106,4 +116,5 @@ defmodule Mix.Tasks.Rivet.List do
       IO.puts(:stderr, err)
     end
   end
+  # coveralls-ignore-end
 end

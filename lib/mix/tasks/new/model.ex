@@ -72,29 +72,40 @@ defmodule Mix.Tasks.Rivet.New.Model do
 
       # note: keep this last for readability of the final message
       if dopts.migration do
-        migdir = Path.join(modeldir, "migrations")
-        create_directory(migdir)
-        create_file(Path.join(migdir, @index_file), Templates.migrations(opts))
-        create_file(Path.join(migdir, @archive_file), Templates.empty_list(opts))
-        create_file(Path.join(migdir, "base.exs"), Templates.base_migration(opts))
+        rivetmigdir = Application.app_dir(app, "priv/rivet/migrations")
+        create_directory(rivetmigdir)
+        create_file(Path.join([rivetmigdir, model_name, @index_file]), Templates.migrations(opts))
+
+        create_file(
+          Path.join([rivetmigdir, model_name, @archive_file]),
+          Templates.empty_list(opts)
+        )
+
+        create_file(
+          Path.join([rivetmigdir, model_name, "base.exs"]),
+          Templates.base_migration(opts)
+        )
+
         basemod = as_module("#{opts[:c_mod]}.Migrations")
 
-        if not File.exists?(@migrations_file) do
-          create_file(@migrations_file, Templates.empty_list(opts))
+        migrations_file = Path.join(rivetmigdir, @migrations_file)
+
+        if not File.exists?(migrations_file) do
+          create_file(migrations_file, Templates.empty_list(opts))
         end
 
-        case Migration.Manage.add_include(@migrations_file, basemod) do
+        case Migration.Manage.add_include(migrations_file, basemod) do
           {:exists, _prefix} ->
             IO.puts("""
 
-            Model already exists in `#{@migrations_file}`, not adding
+            Model already exists in `#{migrations_file}`, not adding
 
             """)
 
           {:ok, mig} ->
             IO.puts("""
 
-            Model added to `#{@migrations_file}` with prefix `#{mig[:prefix]}`
+            Model added to `#{migrations_file}` with prefix `#{mig[:prefix]}`
 
             """)
 

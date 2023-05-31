@@ -3,8 +3,8 @@ defmodule RivetTestLib.Yoink do
   use Rivet.Ecto.Model
 
   typed_schema "rivet_test_lib_yoinks" do
-    #belongs_to(:user, ..., type: :binary_id, foreign_key: :user_id)
-    #field(:type, Enum)
+    # belongs_to(:user, ..., type: :binary_id, foreign_key: :user_id)
+    # field(:type, Enum)
     timestamps()
   end
 

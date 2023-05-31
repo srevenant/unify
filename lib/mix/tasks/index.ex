@@ -30,6 +30,7 @@ defmodule Mix.Tasks.Rivet do
   }
 
   @impl true
+  # coveralls-ignore-start
   def run(args) do
     case args do
       [] ->
@@ -55,14 +56,11 @@ defmodule Mix.Tasks.Rivet do
     end
   end
 
-  # defp get_full(cmd) do
-  # end
-
   defp list_commands() do
     Application.ensure_all_started(:rivet)
     Mix.shell().info("Rivet v#{Application.spec(:rivet, :vsn)}")
     Mix.shell().info("A toolkit for managing models in Elixir, working with Ecto.")
     Mix.shell().info(@moduledoc)
-    # Mix.Tasks.Help.run(["--search", "rivet."])
   end
+  # coveralls-ignore-end
 end
