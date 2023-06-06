@@ -23,7 +23,7 @@ defmodule Rivet.Migration.Load do
     Application.ensure_loaded(app)
     app_config = Application.get_env(app, :rivet, [])
 
-    config = Keyword.put(app_config, :opts, opts) |> Map.new()
+    Keyword.put(app_config, :opts, opts) |> Map.new()
   end
 
   @doc """

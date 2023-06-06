@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Rivet.New do
   use Mix.Task
-  # alias Rivet.Ecto.Templates
+  # alias Rivet.Cli.Templates
   # import Mix.Generator
   # import Transmogrify
   # require Logger
