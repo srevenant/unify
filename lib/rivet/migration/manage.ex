@@ -2,7 +2,6 @@ defmodule Rivet.Migration.Manage do
   require Logger
   import Rivet.Migration
   import Rivet.Utils.Types, only: [as_int!: 1]
-  alias Rivet.Cli.Templates
   import Mix.Generator
   import Transmogrify
   use Rivet
@@ -44,7 +43,7 @@ defmodule Rivet.Migration.Manage do
 
       not File.exists?(parts.path.migrations) ->
         {:error,
-         "Model Migrations not found `#{parts.name.migrations}` in `#{parts.path.migrations}`"}
+         "Model Migrations not found in `#{parts.path.migrations}`"}
 
       # TODO: figure out how it'll work so we can put version in path, and check
       # if module exists by name, without version#. Code.module_exists() doesn't
@@ -65,7 +64,7 @@ defmodule Rivet.Migration.Manage do
         [base: true]
       else
         []
-      end ++ [module: as_module(parts.base), version: parts.ver]
+      end ++ [module: parts.name.migration, version: parts.ver]
 
     opts =
       Map.take(cfg, [:app, :base, :base_path, :models_root, :tests_root])
@@ -76,7 +75,7 @@ defmodule Rivet.Migration.Manage do
       })
       |> Map.to_list()
 
-    create_file(parts.path.migration, Templates.migration(opts))
+    create_file(parts.path.migration, Rivete.Cli.Templates.migration(opts))
     index = Path.join(parts.path.migrations, @index_file)
 
     with {migs, _} <- Code.eval_file(index) do
@@ -89,7 +88,13 @@ defmodule Rivet.Migration.Manage do
   end
 
   ##############################################################################
-  defp module_parts(model, label, ver, cfg) do
+  @doc """
+  iex> cfg = %{app: :rivet_email, base: "Rivet.Email", base_path: "../rivet_email", models_root: "../rivet_email/lib/email", opts: [base_dir: "../rivet_email"], tests_root: "../rivet_email/test/email"}
+  iex> ver = 2000
+  iex> module_parts("Template", "doctest", ver, cfg)
+  %{base: "Doctest", name: %{migration: Rivet.Email.Template.Migrations.Doctest, model: "Rivet.Email.Template"}, path: %{migration: "priv/rivet/migrations/template/doctest.exs", migrations: "priv/rivet/migrations/template", model: "../rivet_email/lib/email/template"}, ver: 2000}
+  """
+  def module_parts(model, label, ver, cfg) do
     model_name =
       case String.split(modulename(model), ".") do
         [one] ->
@@ -99,24 +104,22 @@ defmodule Rivet.Migration.Manage do
           Enum.join(mod, ".")
       end
 
-    model_path = pathname(model)
+    model_path = Module.concat([model_name]) |> Module.split |> List.last() |> pathname()
 
     base = modulename(label)
-    migs_name = "#{model_name}.Migrations"
-    mig_name = "#{migs_name}.#{base}"
+    mig_name = Module.concat([model_name, "Migrations", base])
 
     %{
       base: base,
       ver: ver,
       name: %{
         model: model_name,
-        migrations: migs_name,
         migration: mig_name
       },
       path: %{
-        model: "lib/" <> pathname(model_name),
-        migrations: "lib/" <> pathname(migs_name),
-        migration: "priv/rivet/#{model_path}/#{pathname(label)}.exs"
+        model: Path.join(cfg.models_root, model_path),
+        migrations: "priv/rivet/migrations/#{model_path}",
+        migration: "priv/rivet/migrations/#{model_path}/#{pathname(label)}.exs"
       }
     }
   end

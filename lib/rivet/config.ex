@@ -4,13 +4,13 @@ defmodule Rivet.Config do
   use Rivet
 
   @moduledoc ~S"""
-  Optional configurations can be specified as opts, or in the project spec
+  Optional configurations can be specified as opts, or in the app environment
   under the key `:rivet`
 
-    base_dir   - base folder for pathing. Defaults to '.'
+    base_dir   - base folder of the project, for pathing. Defaults to '.'
     lib_dir    - lib folder from base of project. Default: "lib"
     test_dir   - test folder from base of project. Default: "test"
-    models_dir - sub-folder in lib for models, default: "#{app_name}"
+    models_dir - sub-folder in lib_dir for models, default: "#{app_name}"
 
   From this we generate:
 
@@ -36,13 +36,14 @@ defmodule Rivet.Config do
         libdir = getdir(:lib_dir, opts, rivet_conf, "lib")
         testdir = getdir(:test_dir, opts, rivet_conf, "test")
         modelsdir = getdir(:models_dir, opts, rivet_conf, "#{app}")
+        base = getconf(:base, opts, rivet_conf, modulename(join_parts(modelsdir)))
 
         with {:ok, paths} <- get_paths(basedir, modelsdir, libdir, testdir) do
           {:ok,
            %{
              base_path: Path.join(basedir),
              app: app,
-             base: modulename(join_parts(modelsdir)),
+             base: base,
              opts: opts
            }
            |> Map.merge(paths)}
