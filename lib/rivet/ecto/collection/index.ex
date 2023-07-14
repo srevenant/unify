@@ -16,6 +16,9 @@ defmodule Rivet.Ecto.Collection do
   Note: fk and unique may also be tuple: {:key, [keyword-list options]}
   """
 
+  ## TODO: update `:unique_constraints` to `:unique` and add `:embeds` as
+  ## keywords.
+
   import Ecto.Query, only: [from: 2]
 
   @callback validate(Ecto.Changeset.t()) :: Ecto.Changeset.t()
