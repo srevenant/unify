@@ -75,7 +75,7 @@ defmodule Rivet.Migration.Manage do
       })
       |> Map.to_list()
 
-    create_file(parts.path.migration, Rivete.Cli.Templates.migration(opts))
+    create_file(parts.path.migration, Rivet.Cli.Templates.migration(opts))
     index = Path.join(parts.path.migrations, @index_file)
 
     with {migs, _} <- Code.eval_file(index) do
