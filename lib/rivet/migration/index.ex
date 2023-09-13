@@ -106,8 +106,10 @@ defmodule Rivet.Migration do
   {:error, "Cannot find file 'nar'"}
   iex> load_data_file("test/rivet_test_input")
   {:error, "Cannot load file 'test/rivet_test_input': Invalid contents"}
-  iex> load_data_file("coveralls.json")
-  {:error, "Cannot load file 'coveralls.json': syntax error before: coverage_options"}
+
+  # force an error
+  iex> load_data_file("LICENSE.txt")
+  {:error, "Cannot load file 'LICENSE.txt': keyword argument must be followed by space after: http:"}
   """
   @spec load_data_file(String.t()) :: {:ok, list(list())} | rivet_error()
   def load_data_file(path) do

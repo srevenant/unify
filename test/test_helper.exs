@@ -1,5 +1,4 @@
-# capture_log: true)
-ExUnit.start()
+ExUnit.start(capture_log: true)
 
 # {:ok, _} = Application.ensure_all_started(:ex_machina)
 Supervisor.start_link([Rivet.Test.Repo], strategy: :one_for_one)
