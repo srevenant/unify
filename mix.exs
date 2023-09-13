@@ -5,7 +5,7 @@ defmodule Rivet.MixProject do
     [
       app: :rivet,
       version: "2.0.3",
-      elixir: "~> 1.13",
+      elixir: "~> 1.14",
       description: "Elixir data model framework library",
       source_url: "https://github.com/srevenant/rivet",
       docs: [main: "Rivet"],
@@ -56,7 +56,7 @@ defmodule Rivet.MixProject do
       {:excoveralls, "~> 0.14", only: :test},
       {:mix_test_watch, "~> 1.0", only: [:test, :dev], runtime: false},
       {:postgrex, "~> 0.13", only: [:test]},
-      {:rivet_utils, "~> 1.1.5", git: "https://github.com/srevenant/rivet-utils.git", branch: "deps-update"},
+      {:rivet_utils, "~> 1.2.0"},
       {:transmogrify, "~> 1.1"},
       {:typed_ecto_schema, "~> 0.3.0 or ~> 0.4.1"},
       {:yaml_elixir, "~> 2.8"}
