@@ -56,8 +56,8 @@ defmodule Rivet.MixProject do
       {:excoveralls, "~> 0.14", only: :test},
       {:mix_test_watch, "~> 1.0", only: [:test, :dev], runtime: false},
       {:postgrex, "~> 0.13", only: [:test]},
-      {:rivet_utils, "~> 2.0.0", git: "https://github.com/srevenant/rivet-utils.git", branch: "v2"},
-      {:transmogrify, "~> 2.0.2",  git: "https://github.com/srevenant/transmogrify.git", branch: "master"},
+      {:rivet_utils, "~> 2.0.0"},
+      {:transmogrify, "~> 2.0.2"},
       {:typed_ecto_schema, "~> 0.3.0 or ~> 0.4.1"},
       {:yaml_elixir, "~> 2.8"}
     ]
