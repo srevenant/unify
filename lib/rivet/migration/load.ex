@@ -1,7 +1,7 @@
 defmodule Rivet.Migration.Load do
   require Logger
   import Rivet.Migration
-  import Rivet.Utils.Types, only: [as_int!: 1]
+  import Transmogrify.As
   import Transmogrify
   use Rivet
 

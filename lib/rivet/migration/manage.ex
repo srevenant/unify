@@ -1,8 +1,8 @@
 defmodule Rivet.Migration.Manage do
   require Logger
   import Rivet.Migration
-  import Rivet.Utils.Types, only: [as_int!: 1]
   import Mix.Generator
+  import Transmogrify.As
   import Transmogrify
   use Rivet
 
@@ -128,7 +128,7 @@ defmodule Rivet.Migration.Manage do
   defp get_include_prefix(%{prefix: p}, x, y) when is_number(p), do: {:ok, p, x, y}
 
   defp get_include_prefix(%{prefix: prefix}, x, y) when is_binary(prefix) do
-    case Rivet.Utils.Types.as_int(prefix) do
+    case Transmogrify.As.as_int(prefix) do
       {:ok, num} -> {:ok, num, x, y}
       {:error, reason} -> {:error, "Invalid include prefix #{prefix}: #{reason}"}
     end

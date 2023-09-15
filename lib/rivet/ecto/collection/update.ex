@@ -26,7 +26,7 @@ defmodule Rivet.Ecto.Collection.Update do
 
       @spec update_fill(@model.t, attrs :: map) :: model_p_result | ecto_p_result
       def update_fill(%@model{} = item, attrs) do
-        update(item, transmogrify(attrs, %{clean_nil: true}))
+        update(item, transmogrify(attrs, %{no_nil_value: true}))
       end
 
       ##########################################################################
