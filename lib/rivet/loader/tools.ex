@@ -1,6 +1,7 @@
 defmodule Rivet.Loader.Tools do
   import Transmogrify
   import Rivet.Utils.Ecto.Errors, only: [convert_error_changeset: 1]
+  alias Rivet.Loader.State
 
   def handle_yaml_result({:error, err}) do
     IO.inspect(err, label: "Bad YAML data")
@@ -8,7 +9,7 @@ defmodule Rivet.Loader.Tools do
   end
 
   def handle_yaml_result({:ok, data}) do
-    {:ok, transmogrify(data, key_convert: :rivet, key_case: :snake)}
+    {:ok, transmogrify(data, key_convert: :atom, key_case: :snake)}
   end
 
   @spec find_load_file(fname :: binary()) :: {:ok | :error, path :: binary()}
@@ -79,7 +80,12 @@ defmodule Rivet.Loader.Tools do
   def create_list([], _mod), do: nil
 
   def modname(module), do: Module.split(module) |> List.last()
-  def singular(module), do: "#{module}" |> String.slice(0..-2) |> String.to_atom()
+
+  def singular(module) do
+    # using regex isn't efficient, but this is only for dataloads, and this is
+    # much simpler code:
+    Regex.replace(~r/s$/, "#{module}", "") |> String.to_atom()
+  end
 
   ##############################################################################
   @spec upsert_record(
@@ -94,13 +100,14 @@ defmodule Rivet.Loader.Tools do
 
   def upsert_record(state, module, data, claims \\ nil, commit \\ &upsert_record_commit/4)
 
-  def upsert_record(%{commit: commit} = state, module, data, claims, _) when is_function(commit),
-    do: upsert_record(state, module, data, claims, commit)
+  def upsert_record(%State{commit: commit} = state, module, data, claims, _)
+      when is_function(commit),
+      do: upsert_record(state, module, data, claims, commit)
 
   def upsert_record(state, module, data, claims, commit) do
     with {:ok, item, state, type} <- commit.(state, module, data, claims) do
       {:ok, item,
-       did_load(state, singular(module), item.id, "- #{type} #{modname(module)} #{item.id}")}
+       did_load(state, singular(module), item.id, "-- #{type} #{modname(module)} #{item.id}")}
     else
       err ->
         abort(state, "Upsert Record failed", err)
@@ -215,7 +222,7 @@ defmodule Rivet.Loader.Tools do
 
   ##############################################################################
   def defer(state, item) do
-    %{state | deferred: [item | state.deferred]}
+    %State{state | deferred: [item | state.deferred]}
   end
 
   ##############################################################################
@@ -241,20 +248,24 @@ defmodule Rivet.Loader.Tools do
 
   def debug(state, msg, opts \\ [])
 
-  def debug(%{debug: true} = state, {:error, %Ecto.Changeset{} = chg}, opts),
+  def debug(%State{debug: true} = state, {:error, %Ecto.Changeset{} = chg}, opts),
     do: log(state, debug_inspect(chg, opts))
 
-  def debug(%{debug: true} = state, %Ecto.Changeset{} = chg, opts),
+  def debug(%State{debug: true} = state, %Ecto.Changeset{} = chg, opts),
     do: log(state, debug_inspect(chg, opts))
 
-  def debug(%{debug: true} = state, msg, label: label) when is_binary(msg),
+  def debug(%State{debug: true} = state, msg, label: label) when is_binary(msg),
     do: log(state, "#{label}: #{msg}")
 
-  def debug(%{debug: true} = state, msg, _) when is_binary(msg), do: log(state, msg)
-  def debug(%{debug: true} = state, msg, opts), do: log(state, debug_inspect(msg, opts))
+  def debug(%State{debug: true} = state, msg, _) when is_binary(msg), do: log(state, msg)
+  def debug(%State{debug: true} = state, msg, opts), do: log(state, debug_inspect(msg, opts))
   def debug(state, _, _), do: state
 
-  # def notify(x), do: IO.puts(:stderr, x)
+  def log_state(%State{debug: true} = state, msg) do
+    IO.puts(:stderr, msg)
+    Map.update(state, :log, [], fn log -> [[msg, "\n"] | log] end)
+  end
+
   def log_state(state, msg), do: Map.update(state, :log, [], fn log -> [[msg, "\n"] | log] end)
 
   ##############################################################################
@@ -265,8 +276,12 @@ defmodule Rivet.Loader.Tools do
   # a more 'normal' exit
   def system_exit(how), do: exit({:shutdown, how})
 
-  def die(msg) do
-    IO.puts(:stderr, msg)
-    exit({:shutdown, 1})
-  end
+  def meta_put(%State{meta: meta} = state, key, value),
+    do: %State{state | meta: Map.put(meta, key, value)}
+
+  def meta_merge(%State{meta: meta} = state, value),
+    do: %State{state | meta: Map.merge(meta, value)}
+
+  def meta_update(%State{meta: meta} = state, key, default, func),
+    do: %State{state | meta: Map.update(meta, key, default, func)}
 end

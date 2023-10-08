@@ -13,6 +13,10 @@ defmodule Rivet.Ecto.Model do
       if Keyword.get(opts, :id_type, :uuid) == :uuid do
         @primary_key {:id, :binary_id, autogenerate: true}
         @foreign_key_type :binary_id
+      else
+        if Keyword.get(opts, :id_type, :uuid) == :none do
+          @primary_key false
+        end
       end
 
       if Keyword.get(opts, :export_json, []) != [] do

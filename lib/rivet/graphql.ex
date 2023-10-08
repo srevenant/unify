@@ -130,6 +130,7 @@ defmodule Rivet.Graphql do
   def graphql_status_result({:error, "Unauthenticated"} = pass, _), do: pass
 
   def graphql_status_result({:ok, %{success: true}} = pass, nil), do: pass
+
   def graphql_status_result({:ok, %{success: true, result: result} = r}, key),
     do: {:ok, Map.delete(r, :result) |> Map.put(key, result)}
 

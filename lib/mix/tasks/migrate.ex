@@ -86,5 +86,6 @@ defmodule Mix.Tasks.Rivet.Migrate do
         Mix.raise(msg)
     end
   end
+
   # coveralls-ignore-end
 end

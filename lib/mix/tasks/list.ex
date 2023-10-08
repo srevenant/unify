@@ -46,6 +46,7 @@ defmodule Mix.Tasks.Rivet.List do
       {_, _, errs} -> syntax(inspect(errs, label: "bad arguments"))
     end
   end
+
   # coveralls-ignore-start
 
   defp list_models(_opts), do: IO.puts("To be implemented")
@@ -116,5 +117,6 @@ defmodule Mix.Tasks.Rivet.List do
       IO.puts(:stderr, err)
     end
   end
+
   # coveralls-ignore-end
 end

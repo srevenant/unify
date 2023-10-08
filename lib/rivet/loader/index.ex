@@ -1,15 +1,25 @@
 defmodule Rivet.Loader do
   alias Rivet.Loader.State
   import Rivet.Loader.Tools
-
-  @module_prefix "Elixir.Rivet."
+  import Rivet.Utils.Cli.Print
 
   @callback load_data(meta :: State.t(), data :: map()) :: {:ok | :error, meta :: State.t()}
   @callback load_deferred(meta :: State.t(), data :: map()) :: {:ok | :error, meta :: State.t()}
   @optional_callbacks load_deferred: 2
 
-  @min_version 2.1
-  @max_version 2.1
+  # wraps load_file, but handles the error and dies
+  def load_or_die(fname, opts \\ []) do
+    with {:error, %{log: log}} <- load_file(fname, opts) do
+      die(log)
+    end
+  end
+
+  def load_print_log(fname, opts \\ []) do
+    with {ok?, %{log: log}} <- load_file(fname, opts) do
+      IO.puts(log)
+      ok?
+    end
+  end
 
   def load_file(fname, opts \\ []) do
     case find_load_file(fname) do
@@ -30,9 +40,12 @@ defmodule Rivet.Loader do
 
   ##############################################################################
   def loader_state(attrs) do
+    keys = Map.keys(%Rivet.Loader.State{})
+    attrs = Keyword.take(attrs, keys) ++ [opts: Map.new(Keyword.drop(attrs, keys))]
+
     case State.build(attrs) do
       %{path: path} = state when is_binary(path) ->
-        log(state, "==> DATA from #{path}\n")
+        log(state, "=> FILE #{path}")
 
       state ->
         state
@@ -46,36 +59,91 @@ defmodule Rivet.Loader do
 
   def load_data({:error, msg}, %State{} = state), do: abort(state, msg)
 
-  def load_data({:ok, [%{version: version, type: "Rivet"} | data]}, %State{} = state)
-      when @min_version <= version and version <= @max_version,
-      do: load_data_items({:ok, state}, data)
+  def load_data(
+        {:ok, [%{version: version, type: file_type} | data]},
+        %State{load_file_type: file_type} = state
+      ) do
+    if state.min_file_ver <= version and version <= state.max_file_ver do
+      load_data_items({:ok, state}, data)
+    else
+      {:error,
+       log(
+         state,
+         "File version unsupported (min=#{state.min_file_ver}, max=#{state.max_file_ver})"
+       )}
+    end
+  end
 
-  def load_data({:ok, _}, %State{} = state),
-    do: {:error, log(state, "Unrecognized config file (version or type missing?)")}
+  def load_data({:ok, _}, %State{} = state) do
+    {:error, log(state, "Unrecognized config file type (not #{state.load_file_type})")}
+  end
 
   ##############################################################################
-  defp valid_load_result({q, %State{}} = pass, _, _) when q in [:ok, :error], do: pass
+  defp load_or_die({q, %State{}} = pass, _, _) when q in [:ok, :error], do: pass
 
-  defp valid_load_result(result, type, func) do
-    IO.inspect(result, label: "\n=> FAILURE from #{type}.#{func}(), bad result")
+  defp load_or_die(result, type, func) do
+    IO.inspect(result, label: "\n!! FAILURE from #{type}.#{func}(), bad result")
     system_exit(1)
   end
 
-  def load_data_items({:ok, %State{} = state}, [%{type: type, values: data} | rest]) do
-    model = String.to_atom("#{@module_prefix}.#{type}")
-    loader = String.to_atom("#{model}.Loader")
+  defp type_modules(prefix, type) do
+    [
+      # Rivet style model "Loader" override
+      {Module.concat([prefix, type, "Loader"]), :load_data, 2},
+      # Rivet style model
+      {Module.concat([prefix, type]), :create, 1},
+      # Direct module reference
+      {Module.concat([type, "Loader"]), :load_data, 2},
+      {Module.concat([type]), :load_data, 2},
+      {Module.concat([type]), :create, 1},
+      # older 's' collection style
+      {Module.concat([prefix, "#{type}s"]), :create, 1}
+    ]
+  end
 
-    cond do
-      Kernel.function_exported?(loader, :load_data, 2) ->
-        apply(loader, :load_data, [state, data])
-        |> valid_load_result(type, :load_data)
+  defp has_function?({module, func, arity}) do
+    Code.ensure_loaded(module)
+    Kernel.function_exported?(module, func, arity)
+  end
 
-      Kernel.function_exported?(model, :create, 1) ->
-        load_model_direct(model, data, state)
+  ##############################################################################
+  defp find_run_load_module(state, data, type, [prefix | rest]) do
+    case type_modules(prefix, type) |> Enum.find(&has_function?/1) do
+      nil ->
+        find_run_load_module(state, data, type, rest)
 
-      true ->
-        {:error, {state, "Cannot find module to load: #{type}", nil}}
+      {module, :load_data, 2} ->
+        state = debug(state, "=> LOADER #{inspect(module)}")
+        apply(module, :load_data, [state, data]) |> load_or_die(type, :load_data)
+
+      {module, :create, 1} ->
+        state = debug(state, "=> MODEL #{inspect(module)}")
+
+        name =
+          case data do
+            %{name: name} -> [name: name]
+            %{label: label} -> [name: label]
+            _ -> []
+          end
+
+        with {:ok, _, state} <- upsert_record(state, module, data, name), do: {:ok, state}
     end
+  end
+
+  defp find_run_load_module(state, _data, type, []) do
+    list =
+      Enum.reduce(state.load_prefixes, [], fn prefix, list ->
+        type_modules(prefix, type) ++ list
+      end)
+      |> Enum.map(&inspect/1)
+      |> Enum.join(", ")
+
+    abort(state, "Cannot find module to load: #{type} (not one of: #{list})")
+  end
+
+  ##############################################################################
+  def load_data_items({:ok, %State{} = state}, [%{type: type, values: data} | rest]) do
+    find_run_load_module(state, data, type, state.load_prefixes)
     |> load_data_items(rest)
   end
 
@@ -89,27 +157,22 @@ defmodule Rivet.Loader do
   def load_data_items({:ok, %State{deferred: deferred} = state}, []),
     do: load_deferred({:ok, state}, deferred)
 
-  # doc exists but didn't match format
-  def load_data_items({:ok, %State{} = state}, _) do
-    {:error, log(state, "Unrecognized doc, no type/values, cannot continue")}
+  # force load deferred
+  def load_data_items({:ok, %State{} = state}, [%{type: "load-deferred"} | rest]) do
+    load_deferred({:ok, state}, state.deferred)
+    |> load_data_items(rest)
   end
 
-  ##############################################################################
-  defp load_model_direct(model, data, %State{} = state) do
-    name =
-      case data do
-        %{name: name} -> [name: name]
-        %{label: label} -> [name: label]
-        _ -> []
-      end
-
-    with {:ok, _, state} <- upsert_record(state, model, data, name), do: {:ok, state}
+  # doc exists but didn't match format
+  def load_data_items({:ok, %State{} = state}, [doc | _]) do
+    IO.inspect(doc)
+    {:error, log(state, "Unrecognized doc, no type/values, cannot continue")}
   end
 
   ##############################################################################
   def load_deferred({:ok, %State{} = state}, [%{type: mod} = data | rest]) do
     apply(mod, :load_deferred, [state, data])
-    |> valid_load_result(mod, :load_deferred)
+    |> load_or_die(mod, :load_deferred)
     |> load_deferred(rest)
   end
 

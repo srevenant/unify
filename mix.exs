@@ -4,7 +4,7 @@ defmodule Rivet.MixProject do
   def project do
     [
       app: :rivet,
-      version: "2.2.0",
+      version: "2.3.0",
       elixir: "~> 1.14",
       description: "Elixir data model framework library",
       source_url: "https://github.com/srevenant/rivet",
@@ -32,7 +32,7 @@ defmodule Rivet.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      env: [ ],
+      env: [],
       mod: {Rivet.Application, []}
     ]
   end

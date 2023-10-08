@@ -2,6 +2,7 @@ defmodule Rivet.Ecto.Collection do
   @moduledoc """
   # For data models using Ecto. Options:
 
+  `id_type: :uuid, :intid, :none` — how to handle record ID
   `short_id: false` — enable/disable ShortId (not supported yet)
   `required: [:field, ...]` — list of fields required for this model
   `update: [:field, ...]` — list of fields allowed to be updated on this model
@@ -15,9 +16,6 @@ defmodule Rivet.Ecto.Collection do
 
   Note: fk and unique may also be tuple: {:key, [keyword-list options]}
   """
-
-  ## TODO: update `:unique_constraints` to `:unique` and add `:embeds` as
-  ## keywords.
 
   import Ecto.Query, only: [from: 2]
 

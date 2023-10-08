@@ -42,8 +42,7 @@ defmodule Rivet.Migration.Manage do
         {:error, "Model not found `#{parts.name.model}` in `#{parts.path.model}`"}
 
       not File.exists?(parts.path.migrations) ->
-        {:error,
-         "Model Migrations not found in `#{parts.path.migrations}`"}
+        {:error, "Model Migrations not found in `#{parts.path.migrations}`"}
 
       # TODO: figure out how it'll work so we can put version in path, and check
       # if module exists by name, without version#. Code.module_exists() doesn't
@@ -104,7 +103,7 @@ defmodule Rivet.Migration.Manage do
           Enum.join(mod, ".")
       end
 
-    model_path = Module.concat([model_name]) |> Module.split |> List.last() |> pathname()
+    model_path = Module.concat([model_name]) |> Module.split() |> List.last() |> pathname()
 
     base = modulename(label)
     mig_name = Module.concat([model_name, "Migrations", base])

@@ -121,7 +121,8 @@ defmodule Rivet.Migration do
     else
       {:error, "Cannot find file '#{path}'"}
     end
-  rescue error ->
-    {:error, "Cannot load file '#{path}': #{error.description}"}
+  rescue
+    error ->
+      {:error, "Cannot load file '#{path}': #{error.description}"}
   end
 end

@@ -15,5 +15,6 @@ defmodule Mix.Tasks.Rivet.New.Migration do
   def run(optcfg, _, _) do
     syntax(optcfg, "migration {model} {label}")
   end
+
   # ignore-coveralls-end
 end

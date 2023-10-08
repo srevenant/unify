@@ -77,6 +77,14 @@ defmodule Rivet.Ecto.Collection.General do
             }
         }
       end
+
+      ##########################################################################
+      def reload(%@model{} = item) do
+        case @repo.reload(item) do
+          %@model{} = item -> {:ok, item}
+          nil -> {:error, :not_found}
+        end
+      end
     end
   end
 end

@@ -148,5 +148,6 @@ defmodule Rivet.Cli.Templates do
     end
   end
   """)
+
   # coveralls-ignore-end
 end

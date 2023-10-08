@@ -62,5 +62,6 @@ defmodule Mix.Tasks.Rivet do
     Mix.shell().info("A toolkit for managing models in Elixir, working with Ecto.")
     Mix.shell().info(@moduledoc)
   end
+
   # coveralls-ignore-end
 end

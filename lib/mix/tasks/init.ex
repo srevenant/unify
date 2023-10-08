@@ -26,5 +26,6 @@ defmodule Mix.Tasks.Rivet.Init do
        mix rivet.new model {name}
     """)
   end
+
   # coveralls-ignore-end
 end
