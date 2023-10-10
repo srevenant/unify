@@ -3,7 +3,7 @@ defmodule Rivet.Ecto.Collection do
   # For data models using Ecto. Options:
 
   `id_type: :uuid, :intid, :none` — how to handle record ID
-  `short_id: false` — enable/disable ShortId (not supported yet)
+  `features: [:short_id]` — enable/disable ShortId
   `required: [:field, ...]` — list of fields required for this model
   `update: [:field, ...]` — list of fields allowed to be updated on this model
   `create: [:field, ...]` — list of additional fields allowed only on creation.
@@ -57,6 +57,7 @@ defmodule Rivet.Ecto.Collection do
       {:limit, limit}, query -> from(query, limit: ^limit)
       {:preload, preload}, query -> from(query, preload: ^preload)
       {:select, select}, query -> from(query, select: ^select)
+      _, query -> query
     end)
   end
 
