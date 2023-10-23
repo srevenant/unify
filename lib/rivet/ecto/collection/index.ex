@@ -56,6 +56,7 @@ defmodule Rivet.Ecto.Collection do
       {:asc, key}, query -> from(query, order_by: [asc: ^key])
       {:limit, limit}, query -> from(query, limit: ^limit)
       {:preload, preload}, query -> from(query, preload: ^preload)
+      {:offset, offset}, query -> from(query, offset: ^offset)
       {:select, select}, query -> from(query, select: ^select)
       _, query -> query
     end)
