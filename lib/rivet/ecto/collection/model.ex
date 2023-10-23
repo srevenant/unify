@@ -47,18 +47,39 @@ defmodule Rivet.Ecto.Collection.Model do
       def build(params \\ %{}) do
         %__MODULE__{}
         |> cast(params, @create_allowed_fields)
-        |> validate
+        |> create_validate()
+        |> validate()
       end
 
       defoverridable build: 1
 
+
       def changeset(item, attrs) do
         item
         |> cast(attrs, @update_allowed_fields)
-        |> validate
+        |> change_validate()
+        |> validate()
       end
 
       defoverridable changeset: 2
+
+      @doc """
+      create_validate is only run for creating new records
+      """
+      def create_validate(chgset), do: chgset
+      defoverridable create_validate: 1
+
+      @doc """
+      change_validate is only run for changing existing records
+      """
+      def change_validate(chgset), do: chgset
+      defoverridable change_validate: 1
+
+      @doc """
+      a hook if you just want to extend validate
+      """
+      def validate_post(chgset), do: chgset
+      defoverridable validate_post: 1
 
       # default is to do nothing
       @doc """
@@ -94,13 +115,14 @@ defmodule Rivet.Ecto.Collection.Model do
       cond do
         @foreign_keys == [] and @unique_constraints == [] ->
           def validate(%Ecto.Changeset{} = chgset),
-            do: validate_required(chgset, @required_fields)
+            do: validate_required(chgset, @required_fields) |> validate_post()
 
         @foreign_keys == [] ->
           def validate(%Ecto.Changeset{} = chgset) do
             chgset
             |> validate_required(@required_fields)
             |> validate_unique_constraints(@unique_constraints)
+            |> validate_post()
           end
 
         @unique_constraints == [] ->
@@ -108,6 +130,7 @@ defmodule Rivet.Ecto.Collection.Model do
             chgset
             |> validate_required(@required_fields)
             |> validate_foreign_keys(@foreign_keys)
+            |> validate_post()
           end
 
         true ->
@@ -116,6 +139,7 @@ defmodule Rivet.Ecto.Collection.Model do
             |> validate_required(@required_fields)
             |> validate_foreign_keys(@foreign_keys)
             |> validate_unique_constraints(@unique_constraints)
+            |> validate_post()
           end
       end
 
