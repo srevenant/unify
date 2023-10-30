@@ -6,10 +6,11 @@ defmodule Mix.Tasks.Rivet.New.Migration do
   # ignore-coveralls-start
   def run(optcfg, opts, [model, label]) do
     with {:ok, cfg} <- Mix.Tasks.Rivet.New.get_config(optcfg, opts),
-         {:error, reason} <- Migration.Manage.add_migration(model, label, cfg),
-         do: die(reason)
-
-    :ok
+         :ok <- Migration.Manage.add_migration(model, label, cfg) do
+      :ok
+    else
+      {:error, reason} -> die(reason)
+    end
   end
 
   def run(optcfg, _, _) do

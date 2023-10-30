@@ -28,16 +28,16 @@ defmodule Rivet.Test do
   describe "Rivet New" do
     test "single path segment", dirs do
       assert capture_io(fn ->
-               Mix.Tasks.Rivet.New.run([
-                 "--lib-dir",
-                 dirs.lib,
-                 "--test-dir",
-                 dirs.tst,
-                 "--no-migration",
-                 "model",
-                 "single"
-               ])
-             end) =~ "creating"
+        Mix.Tasks.Rivet.New.run([
+          "--lib-dir",
+          dirs.lib,
+          "--test-dir",
+          dirs.tst,
+          "--no-migration",
+          "model",
+          "single"
+        ])
+      end) =~ "creating"
 
       created = Path.join(dirs.lib, "rivet/single")
       assert {:ok, files} = File.ls(created)

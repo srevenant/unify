@@ -4,6 +4,7 @@ defmodule Mix.Tasks.Rivet.New.Model do
   import Rivet.Migration
   alias Rivet.Cli.Templates
   import Rivet.Utils.Cli
+  import Rivet.Utils.Cli.Print
   alias Rivet.Migration
   use Rivet
 
@@ -113,9 +114,11 @@ defmodule Mix.Tasks.Rivet.New.Model do
             IO.puts(:stderr, error)
         end
       end
-    end
 
-    :ok
+      :ok
+    else
+      {:error, msg} -> die(msg)
+    end
   end
 
   def run(optcfg, _, _) do
