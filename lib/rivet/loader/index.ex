@@ -65,7 +65,7 @@ defmodule Rivet.Loader do
       ) do
     if state.min_file_ver <= version and version <= state.max_file_ver do
       if not is_nil(state.limits) and not match_limits?(state, doc) do
-        {:ok, log(state, "Ignoring file; limits don't match")}
+        {:ok, log(state, "-- Ignoring file; limits don't match")}
       else
         load_data_items({:ok, state}, data)
       end
@@ -157,19 +157,27 @@ defmodule Rivet.Loader do
   iex> alias Rivet.Loader.State
   iex> match_limits?(%State{limits: nil}, nil)
   true
-  iex> match_limits?(%State{limits: %{blue: "red"}}, %{blue: "red"})
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{env: "red"})
   true
-  iex> match_limits?(%State{limits: %{blue: "red"}}, %{blue: "not red"})
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{env: "not red"})
   false
-  iex> match_limits?(%State{limits: %{blue: "red"}}, %{narf: "narf"})
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{narf: "narf"})
+  true
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{env: ["narf"]})
+  false
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{env: ["narf", "red"]})
   true
   """
   def match_limits?(%State{limits: nil}, _), do: true
 
   def match_limits?(%State{limits: limits}, map) do
-    Enum.reduce_while(limits, true, fn {key, val}, _ ->
+    Enum.reduce_while(limits, true, fn {key, req}, _ ->
       if is_map_key(map, key) do
-        if map[key] == val do
+        case map[key] do
+          val when is_list(val) -> req in val
+          val -> val == req
+        end
+        |> if do
           {:cont, true}
         else
           {:halt, false}
