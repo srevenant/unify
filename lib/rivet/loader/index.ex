@@ -60,11 +60,15 @@ defmodule Rivet.Loader do
   def load_data({:error, msg}, %State{} = state), do: abort(state, msg)
 
   def load_data(
-        {:ok, [%{version: version, type: file_type} | data]},
+        {:ok, [%{version: version, type: file_type} = doc | data]},
         %State{load_file_type: file_type} = state
       ) do
     if state.min_file_ver <= version and version <= state.max_file_ver do
-      load_data_items({:ok, state}, data)
+      if not is_nil(state.limits) and not match_limits?(state, doc) do
+        {:ok, log(state, "Ignoring file; limits don't match")}
+      else
+        load_data_items({:ok, state}, data)
+      end
     else
       {:error,
        log(
