@@ -142,8 +142,47 @@ defmodule Rivet.Loader do
   end
 
   ##############################################################################
-  def load_data_items({:ok, %State{} = state}, [%{type: type, values: data} | rest]) do
-    find_run_load_module(state, data, type, state.load_prefixes)
+  @doc """
+
+  If limits are given, it's a key:value dict. Rules:
+
+  * If key does NOT exist in the doc, then it's evaluated true
+  * If the key DOES exist, then the value must match to be true
+  * If no limits, everything is true
+
+  iex> alias Rivet.Loader.State
+  iex> match_limits?(%State{limits: nil}, nil)
+  true
+  iex> match_limits?(%State{limits: %{blue: "red"}}, %{blue: "red"})
+  true
+  iex> match_limits?(%State{limits: %{blue: "red"}}, %{blue: "not red"})
+  false
+  iex> match_limits?(%State{limits: %{blue: "red"}}, %{narf: "narf"})
+  true
+  """
+  def match_limits?(%State{limits: nil}, _), do: true
+
+  def match_limits?(%State{limits: limits}, map) do
+    Enum.reduce_while(limits, true, fn {key, val}, _ ->
+      if is_map_key(map, key) do
+        if map[key] == val do
+          {:cont, true}
+        else
+          {:halt, false}
+        end
+      else
+        {:cont, true}
+      end
+    end)
+  end
+
+  ##############################################################################
+  def load_data_items({:ok, %State{} = state}, [%{type: type, values: data} = doc | rest]) do
+    if match_limits?(state, doc) do
+      find_run_load_module(state, data, type, state.load_prefixes)
+    else
+      state
+    end
     |> load_data_items(rest)
   end
 
