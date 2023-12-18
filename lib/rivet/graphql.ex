@@ -85,6 +85,7 @@ defmodule Rivet.Graphql do
 
   def error_string({:error, err}) when is_map_key(@std_errors, err), do: @std_errors[err]
 
+  def error_string({:error, str}) when is_binary(str), do: str
   def error_string(%Ecto.Changeset{} = chgset), do: convert_error_changeset(chgset)
 
   def error_string({:error, %Ecto.Changeset{} = chgset}), do: convert_error_changeset(chgset)
@@ -141,6 +142,9 @@ defmodule Rivet.Graphql do
     do: {:ok, Map.new([{:success, true}, {key, result}])}
 
   def graphql_status_result({:error, err}, _),
+    do: {:ok, %{success: false, reason: error_string(err)}}
+
+  def graphql_status_result({:error, err, _opts}, _),
     do: {:ok, %{success: false, reason: error_string(err)}}
 
   ##############################################################################
