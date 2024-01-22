@@ -136,7 +136,8 @@ defmodule Rivet.Loader do
             pass -> pass
           end
 
-        with {:ok, _, state} <- upsert_record(state, module, {meta, data}, lookup), do: {:ok, state}
+        with {:ok, _, state} <- upsert_record(state, module, {meta, data}, lookup),
+             do: {:ok, state}
     end
   end
 

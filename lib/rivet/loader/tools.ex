@@ -104,7 +104,7 @@ defmodule Rivet.Loader.Tools do
       when is_function(commit),
       do: upsert_record(state, module, data, claims, commit)
 
-  def upsert_record(state, module, data, claims, commit) do
+  def upsert_record(state, module, {_, _} = data, claims, commit) do
     with {:ok, item, state, type} <- commit.(state, module, data, claims) do
       {:ok, item,
        did_load(state, singular(module), item.id, "-- #{type} #{modname(module)} #{item.id}")}
@@ -113,6 +113,10 @@ defmodule Rivet.Loader.Tools do
         abort(state, "Upsert Record failed", err)
     end
   end
+
+  # retool to {meta, data} tuple
+  def upsert_record(state, module, data, claims, commit) when is_map(data),
+    do: upsert_record(state, module, {%{}, data}, claims, commit)
 
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
   # first try by ID, then by lookup criteria
