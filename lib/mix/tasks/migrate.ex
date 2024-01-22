@@ -50,8 +50,17 @@ defmodule Mix.Tasks.Rivet.Migrate do
   def run(args) do
     Mix.Task.run("app.config", [])
     migrator = &Ecto.Migrator.run/4
+    
+    app =
+      case Mix.Project.config()[:app] do
+        nil -> Mix.raise("""
+        Could not find app; is this run from an umbrella? Rivet migrate must run
+        from within it's defined project. Try: mix cmd --app {app} mix rivet migrate
+        """)
+        pass -> pass
+      end
 
-    case Rivet.Migration.Load.prepare_project_migrations(args, Mix.Project.config()[:app]) do
+    case Rivet.Migration.Load.prepare_project_migrations(args, app) do
       {:ok, rivet_migs} ->
         with {:ok, migs} <- Rivet.Migration.Load.to_ecto_migrations(rivet_migs) do
           repos = parse_repo(args)

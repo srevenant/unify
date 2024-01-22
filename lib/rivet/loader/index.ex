@@ -60,11 +60,15 @@ defmodule Rivet.Loader do
   def load_data({:error, msg}, %State{} = state), do: abort(state, msg)
 
   def load_data(
-        {:ok, [%{version: version, type: file_type} | data]},
+        {:ok, [%{version: version, type: file_type} = doc | data]},
         %State{load_file_type: file_type} = state
       ) do
     if state.min_file_ver <= version and version <= state.max_file_ver do
-      load_data_items({:ok, state}, data)
+      if not is_nil(state.limits) and not match_limits?(state, doc) do
+        {:ok, log(state, "-- Ignoring file; limits don't match")}
+      else
+        load_data_items({:ok, state}, data)
+      end
     else
       {:error,
        log(
@@ -142,8 +146,55 @@ defmodule Rivet.Loader do
   end
 
   ##############################################################################
-  def load_data_items({:ok, %State{} = state}, [%{type: type, values: data} | rest]) do
-    find_run_load_module(state, data, type, state.load_prefixes)
+  @doc """
+
+  If limits are given, it's a key:value dict. Rules:
+
+  * If key does NOT exist in the doc, then it's evaluated true
+  * If the key DOES exist, then the value must match to be true
+  * If no limits, everything is true
+
+  iex> alias Rivet.Loader.State
+  iex> match_limits?(%State{limits: nil}, nil)
+  true
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{env: "red"})
+  true
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{env: "not red"})
+  false
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{narf: "narf"})
+  true
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{env: ["narf"]})
+  false
+  iex> match_limits?(%State{limits: %{env: "red"}}, %{env: ["narf", "red"]})
+  true
+  """
+  def match_limits?(%State{limits: nil}, _), do: true
+
+  def match_limits?(%State{limits: limits}, map) do
+    Enum.reduce_while(limits, true, fn {key, req}, _ ->
+      if is_map_key(map, key) do
+        case map[key] do
+          val when is_list(val) -> req in val
+          val -> val == req
+        end
+        |> if do
+          {:cont, true}
+        else
+          {:halt, false}
+        end
+      else
+        {:cont, true}
+      end
+    end)
+  end
+
+  ##############################################################################
+  def load_data_items({:ok, %State{} = state}, [%{type: type, values: data} = doc | rest]) do
+    if match_limits?(state, doc) do
+      find_run_load_module(state, data, type, state.load_prefixes)
+    else
+      state
+    end
     |> load_data_items(rest)
   end
 
