@@ -127,7 +127,7 @@ defmodule Rivet.Loader do
           case {Map.get(meta, :lookup_keys), data} do
             {nil, %{name: name}} -> [name: name]
             {nil, %{label: label}} -> [name: label]
-            {[], data} -> nil
+            {[], _data} -> nil
             {keys, data} when is_list(keys) -> Map.take(data, keys) |> Map.to_list()
             _ -> nil
           end
@@ -136,11 +136,11 @@ defmodule Rivet.Loader do
             pass -> pass
           end
 
-        with {:ok, _, state} <- upsert_record(state, module, data, meta, lookup), do: {:ok, state}
+        with {:ok, _, state} <- upsert_record(state, module, {meta, data}, lookup), do: {:ok, state}
     end
   end
 
-  defp find_run_load_module(state, _data, type, meta, []) do
+  defp find_run_load_module(state, _data, type, _meta, []) do
     list =
       Enum.reduce(state.load_prefixes, [], fn prefix, list ->
         type_modules(prefix, type) ++ list
