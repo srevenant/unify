@@ -136,7 +136,7 @@ defmodule Rivet.Loader do
             pass -> pass
           end
 
-        with {:ok, _, state} <- upsert_record(state, module, {meta, data}, lookup) |> IO.inspect(label: "NARF"),
+        with {:ok, _, state} <- upsert_record(state, module, {meta, data}, lookup),
              do: {:ok, state}
     end
   end
@@ -202,7 +202,7 @@ defmodule Rivet.Loader do
     if match_limits?(state, meta) do
       find_run_load_module(state, data, type, meta, state.load_prefixes)
     else
-      state
+      {:ok, state}
     end
     |> load_data_items(rest)
   end
