@@ -111,10 +111,10 @@ defmodule Rivet.Loader do
   end
 
   ##############################################################################
-  defp find_run_load_module(state, data, type, [prefix | rest]) do
+  defp find_run_load_module(state, data, type, meta, [prefix | rest]) do
     case type_modules(prefix, type) |> Enum.find(&has_function?/1) do
       nil ->
-        find_run_load_module(state, data, type, rest)
+        find_run_load_module(state, data, type, meta, rest)
 
       {module, :load_data, 2} ->
         state = debug(state, "=> LOADER #{inspect(module)}")
@@ -123,18 +123,24 @@ defmodule Rivet.Loader do
       {module, :create, 1} ->
         state = debug(state, "=> MODEL #{inspect(module)}")
 
-        name =
-          case data do
-            %{name: name} -> [name: name]
-            %{label: label} -> [name: label]
-            _ -> []
+        lookup =
+          case {Map.get(meta, :lookup_keys), data} do
+            {nil, %{name: name}} -> [name: name]
+            {nil, %{label: label}} -> [name: label]
+            {[], data} -> nil
+            {keys, data} when is_list(keys) -> Map.take(data, keys) |> Map.to_list()
+            _ -> nil
+          end
+          |> case do
+            x when is_list(x) and length(x) == 0 -> nil
+            pass -> pass
           end
 
-        with {:ok, _, state} <- upsert_record(state, module, data, name), do: {:ok, state}
+        with {:ok, _, state} <- upsert_record(state, module, data, meta, lookup), do: {:ok, state}
     end
   end
 
-  defp find_run_load_module(state, _data, type, []) do
+  defp find_run_load_module(state, _data, type, meta, []) do
     list =
       Enum.reduce(state.load_prefixes, [], fn prefix, list ->
         type_modules(prefix, type) ++ list
@@ -190,8 +196,10 @@ defmodule Rivet.Loader do
 
   ##############################################################################
   def load_data_items({:ok, %State{} = state}, [%{type: type, values: data} = doc | rest]) do
-    if match_limits?(state, doc) do
-      find_run_load_module(state, data, type, state.load_prefixes)
+    meta = Map.drop(doc, [:type, :values])
+
+    if match_limits?(state, meta) do
+      find_run_load_module(state, data, type, meta, state.load_prefixes)
     else
       state
     end

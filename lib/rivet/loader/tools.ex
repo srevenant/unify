@@ -91,7 +91,7 @@ defmodule Rivet.Loader.Tools do
   @spec upsert_record(
           state :: map(),
           collection :: atom(),
-          data :: map(),
+          {meta :: map(), data :: map()},
           claims :: list() | nil,
           commit :: function()
         ) ::
@@ -116,9 +116,11 @@ defmodule Rivet.Loader.Tools do
 
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
   # first try by ID, then by lookup criteria
-  defp upsert_record_commit(state, module, %{id: id} = data, lookup)
+  defp upsert_record_commit(state, module, {_meta, %{id: id}} = data, lookup)
        when is_binary(id) and byte_size(id) == 36 do
+    # lookup by ID first
     replace_with_lookup(state, module, data, [id: id], fn _, _, _ ->
+      # or lookup by alternate keys
       replace_with_lookup(state, module, data, lookup)
     end)
   end
@@ -127,16 +129,18 @@ defmodule Rivet.Loader.Tools do
   defp upsert_record_commit(state, module, data, lookup),
     do: replace_with_lookup(state, module, data, lookup)
 
-  # # # #
-  defp replace_with_lookup(state, module, data, nil),
-    do: create_record(state, module, data)
-
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
   defp replace_with_lookup(state, module, data, lookup, next \\ &create_record/3)
 
-  defp replace_with_lookup(state, module, data, [], next),
+  # no lookup criteria, just go straight to create
+  defp replace_with_lookup(state, module, data, nil, next),
     do: next.(state, module, data)
 
-  defp replace_with_lookup(state, module, data, lookup, next) do
+  #  defp replace_with_lookup(state, module, data, [], next),
+  #    do: next.(state, module, data)
+
+  # first try a lookup criteria
+  defp replace_with_lookup(state, module, {meta, data}, lookup, next) do
     case module.one(lookup) do
       {:ok, obj} ->
         case module.update(obj, data) do
@@ -148,12 +152,12 @@ defmodule Rivet.Loader.Tools do
         end
 
       {:error, _} ->
-        next.(state, module, data)
+        next.(state, module, {meta, data})
     end
   end
 
   # # # #
-  defp create_record(state, module, data) do
+  defp create_record(state, module, {_meta, data}) do
     case module.create(data) do
       {:ok, obj} ->
         {:ok, obj, state, "CREATE"}
