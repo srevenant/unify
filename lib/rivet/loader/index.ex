@@ -136,7 +136,7 @@ defmodule Rivet.Loader do
             pass -> pass
           end
 
-        with {:ok, _, state} <- upsert_record(state, module, {meta, data}, lookup),
+        with {:ok, _, state} <- upsert_record(state, module, {meta, data}, lookup) |> IO.inspect(label: "NARF"),
              do: {:ok, state}
     end
   end
