@@ -215,7 +215,7 @@ defmodule Rivet.Loader do
   end
 
   # doc exists but didn't match format
-  def load_data_items({:ok, %State{} = state}, [doc | _]) do
+  def load_data_items({:ok, %State{} = state}, [_doc | _]) do
     {:error, log(state, "Unrecognized doc, no type/values, cannot continue")}
   end
 
