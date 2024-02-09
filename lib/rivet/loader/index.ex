@@ -171,6 +171,12 @@ defmodule Rivet.Loader do
   true
   iex> match_limits?(%State{limits: %{env: ["red", "white", "blue"]}}, %{env: ["red", "blue"]})
   true
+  iex> match_limits?(%State{limits: %{env: ["red", "white", "blue"]}}, %{})
+  true
+  iex> match_limits?(%State{limits: %{env: ["red", "white", "blue"]}}, %{env: "purple"})
+  false
+  iex> match_limits?(%State{limits: %{env: ["red", "white", "blue"]}}, %{env: ["green"]})
+  false
   """
   def match_limits?(%State{limits: nil}, _), do: true
 
