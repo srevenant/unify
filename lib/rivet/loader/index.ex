@@ -174,8 +174,15 @@ defmodule Rivet.Loader do
     Enum.reduce_while(limits, true, fn {key, req}, _ ->
       if is_map_key(map, key) do
         case map[key] do
-          val when is_list(val) -> req in val
-          val -> val == req
+          val when is_list(val) ->
+            if is_list(req) do
+              Enum.any?(req, &(&1 in val))
+            else
+              req in val
+            end
+
+          val ->
+            val == req
         end
         |> if do
           {:cont, true}
