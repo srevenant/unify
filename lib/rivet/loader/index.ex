@@ -167,6 +167,16 @@ defmodule Rivet.Loader do
   false
   iex> match_limits?(%State{limits: %{env: "red"}}, %{env: ["narf", "red"]})
   true
+  iex> match_limits?(%State{limits: %{env: ["red", "white", "blue"]}}, %{env: "red"})
+  true
+  iex> match_limits?(%State{limits: %{env: ["red", "white", "blue"]}}, %{env: ["red", "blue"]})
+  true
+  iex> match_limits?(%State{limits: %{env: ["red", "white", "blue"]}}, %{})
+  true
+  iex> match_limits?(%State{limits: %{env: ["red", "white", "blue"]}}, %{env: "purple"})
+  false
+  iex> match_limits?(%State{limits: %{env: ["red", "white", "blue"]}}, %{env: ["green"]})
+  false
   """
   def match_limits?(%State{limits: nil}, _), do: true
 
@@ -174,8 +184,19 @@ defmodule Rivet.Loader do
     Enum.reduce_while(limits, true, fn {key, req}, _ ->
       if is_map_key(map, key) do
         case map[key] do
-          val when is_list(val) -> req in val
-          val -> val == req
+          val when is_list(val) ->
+            if is_list(req) do
+              Enum.any?(req, &(&1 in val))
+            else
+              req in val
+            end
+
+          val ->
+            if is_list(req) do
+              val in req
+            else
+              val == req
+            end
         end
         |> if do
           {:cont, true}
