@@ -214,7 +214,7 @@ defmodule Rivet.Loader do
     if match_limits?(state, doc) do
       find_run_load_module(state, data, type, state.load_prefixes)
     else
-      state
+      {:ok, state}
     end
     |> load_data_items(rest)
   end
@@ -238,6 +238,11 @@ defmodule Rivet.Loader do
   # doc exists but didn't match format
   def load_data_items({:ok, %State{} = state}, [_doc | _]) do
     {:error, log(state, "Unrecognized doc, no type/values, cannot continue")}
+  end
+
+  def load_data_items(state, _) do
+    IO.inspect(state, label: "Invalid state")
+    {:error, log(state, "Received invalid state, cannot continue")}
   end
 
   ##############################################################################
