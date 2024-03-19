@@ -26,6 +26,7 @@ defmodule Rivet.Ecto.Collection do
   @callback change_post(item :: map(), changes :: map()) :: map()
   @callback create_prep(item :: map(), changes :: map()) :: {:ok, map()}
   @callback create_post(item :: map(), changes :: map()) :: map()
+  @callback delete(item :: map()) :: {:ok | :error, Ecto.Changeset.t() | map()}
 
   @optional_callbacks validate: 1,
                       build: 1,
@@ -33,7 +34,8 @@ defmodule Rivet.Ecto.Collection do
                       change_prep: 2,
                       change_post: 2,
                       create_prep: 2,
-                      create_post: 2
+                      create_post: 2,
+                      delete: 1
 
   @doc """
   iex> enrich_query_args(%Ecto.Query{}, order_by: [asc: :asdf])
