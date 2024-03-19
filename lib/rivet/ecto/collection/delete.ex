@@ -5,6 +5,8 @@ defmodule Rivet.Ecto.Collection.Delete do
       @spec delete(@model.t) :: model_p_result | ecto_p_result
       def delete(%@model{} = item), do: @repo.delete(item)
 
+      defoverridable delete: 1
+
       def delete_all(clauses, opts \\ [])
 
       def delete_all(clauses, opts) when is_list(clauses),
