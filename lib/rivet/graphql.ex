@@ -202,5 +202,5 @@ defmodule Rivet.Graphql do
 
   def graphql_log(nil, _), do: :ok
 
-  def graphql_log(method, args), do: Logger.info("graphql", [{:method, method} | args])
+  def graphql_log(method, args), do: Logger.info("graphql #{method}", args)
 end

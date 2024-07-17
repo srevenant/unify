@@ -31,6 +31,8 @@ defmodule Rivet.Ecto.Collection.Update do
 
       ##########################################################################
       @spec replace(map, Keyword.t()) :: model_p_result | ecto_p_result
+      def replace(attrs, []), do: create(attrs)
+
       def replace(attrs, clauses) do
         case one(clauses) do
           {:error, _} ->
