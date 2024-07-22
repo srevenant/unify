@@ -52,7 +52,7 @@ defmodule Mix.Tasks.Rivet.Migrate do
     migrator = &Ecto.Migrator.run/4
 
     app =
-      case Mix.Project.config()[:app] do
+      case Application.get_env(:rivet, :app) do
         nil ->
           Mix.raise("""
           Could not find app; is this run from an umbrella? Rivet migrate must run
